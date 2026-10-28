@@ -2,28 +2,32 @@
   const data = window.researchData;
   const mapElement = document.getElementById("geo-map-canvas");
   const panel = document.getElementById("geo-map-panel");
-  const metricControl = document.getElementById("geo-metric");
-  const utilizationControl = document.getElementById("geo-utilization");
-  const utilizationValue = document.getElementById("geo-utilization-value");
-  const wueControl = document.getElementById("geo-wue");
-  const wueValue = document.getElementById("geo-wue-value");
+  const summary = document.getElementById("geo-map-summary");
 
-  if (!data || !mapElement || !panel || !metricControl || !window.L) {
+  if (!data || !mapElement || !panel || !window.L) {
     if (panel) {
-      panel.innerHTML = "<p>Не удалось загрузить геокарту. Проверь подключение к картографическому слою.</p>";
+      panel.innerHTML = "<p>Не удалось загрузить карту. Проверь подключение к картографическому слою.</p>";
     }
     return;
   }
 
-  const numberFormat = new Intl.NumberFormat("ru-RU", {
-    maximumFractionDigits: 0
-  });
-  let selectedId = data.dataCenters[0]?.id || null;
-  let metric = metricControl.value;
+  const sites = (data.dataCenters || []).filter((site) => (
+    Array.isArray(site.coordinates) && site.coordinates.length === 2
+  ));
+  const numberFormat = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });
+  let selectedId = sites[0]?.id || null;
+
+  const escapeHtml = (value) => String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
   const map = L.map(mapElement, {
     zoomControl: false,
     scrollWheelZoom: true
-  }).setView([52, 30], 3);
+  }).setView([56, 30], 3);
   const markersLayer = L.layerGroup().addTo(map);
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -35,139 +39,92 @@
     }
   ).addTo(map);
 
-  function getAssumptions() {
-    return {
-      utilization: Number(utilizationControl.value) / 100,
-      wue: Number(wueControl.value),
-      pue: data.assumptions.defaultPue,
-      hoursPerYear: data.assumptions.hoursPerYear
-    };
-  }
-
-  function calculate(site) {
-    if (!site.capacityMw || !site.gridFactorKg) {
-      return null;
+  function getMetrics(site) {
+    const metrics = [];
+    if (site.capacityMw != null) {
+      metrics.push({
+        label: "Мощность",
+        value: `${numberFormat.format(site.capacityMw)} МВт`,
+        note: site.capacityLabel
+      });
     }
-
-    const assumptions = getAssumptions();
-    const facilityEnergyMWh =
-      site.capacityMw * assumptions.utilization * assumptions.hoursPerYear;
-    const pue = site.pue || assumptions.pue;
-    const itEnergyMWh = facilityEnergyMWh / pue;
-    const carbonTonnes = facilityEnergyMWh * site.gridFactorKg;
-    const waterM3 = itEnergyMWh * assumptions.wue;
-
-    return {
-      facilityEnergyMWh,
-      itEnergyMWh,
-      pue,
-      carbonTonnes,
-      waterM3,
-      assumptions
-    };
+    if (site.pue != null) {
+      metrics.push({
+        label: "PUE",
+        value: numberFormat.format(site.pue),
+        note: site.pueLabel
+      });
+    }
+    return metrics;
   }
 
   function formatSources(ids) {
-    return ids.map((id) => {
-      const source = data.sources[id];
-
-      return (
-        '<li><a href="' + source.url + '" target="_blank" rel="noreferrer">' +
-          source.short +
-        '</a><span>' + source.note + '</span></li>'
-      );
+    return (ids || []).map((id) => {
+      const source = data.sources?.[id];
+      if (!source) return "";
+      const title = escapeHtml(source.short || source.title || id);
+      const note = escapeHtml(source.note || "");
+      const link = source.url
+        ? `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${title}</a>`
+        : `<span>${title}</span>`;
+      return `<li>${link}<span>${note}</span></li>`;
     }).join("");
   }
 
-  function qualityLabel(site) {
-    return site.status === "estimated"
-      ? "Сценарная оценка"
-      : "Только местоположение";
+  function renderSummary() {
+    if (!summary) return;
+    const metricSites = sites.filter((site) => getMetrics(site).length > 0).length;
+    summary.innerHTML = `
+      <div class="geo-map-stat">
+        <span>Точки на карте</span>
+        <strong>${sites.length}</strong>
+      </div>
+      <div class="geo-map-stat">
+        <span>С опубликованными метриками</span>
+        <strong>${metricSites}</strong>
+      </div>`;
   }
 
   function renderPanel(site) {
-    const result = calculate(site);
-    const sourceMarkup = formatSources(site.sources);
-
-    if (!result) {
-      panel.innerHTML =
-        '<p class="geo-panel-kicker">' + qualityLabel(site) + '</p>' +
-        '<h3>' + site.name + '</h3>' +
-        '<p class="geo-panel-place">' + site.place + '</p>' +
-        '<p class="geo-panel-copy">Площадка подтверждена документом, но в открытых источниках из реестра MVP нет одновременно мощности/годового потребления и коэффициента сети, достаточных для расчёта.</p>' +
-        '<dl class="geo-details">' +
-          '<div><dt>Точность точки</dt><dd>' + site.precision + '</dd></div>' +
-        '</dl>' +
-        '<h4>Документы</h4><ul class="source-list">' + sourceMarkup + '</ul>';
-      return;
-    }
-
-    const pueDescription = site.pue
-      ? site.pueLabel
-      : "В модели использовано допущение PUE = " + result.pue.toLocaleString("ru-RU") + ".";
-    const activeValue = metric === "carbon"
-      ? numberFormat.format(result.carbonTonnes) + " тCO₂e/год"
-      : numberFormat.format(result.waterM3) + " м³/год";
+    const metrics = getMetrics(site);
+    const status = metrics.length > 0
+      ? "Есть опубликованные показатели"
+      : "Только подтверждённое местоположение";
+    const metricMarkup = metrics.length
+      ? `<dl class="geo-details">${metrics.map((metric) => (
+          `<div><dt>${escapeHtml(metric.label)}</dt><dd>${escapeHtml(metric.value)} — ${escapeHtml(metric.note)}</dd></div>`
+        )).join("")}</dl>`
+      : "<p class=\"geo-panel-copy\">В доступных источниках нет подтверждённых ресурсных показателей для этой площадки.</p>";
 
     panel.innerHTML =
-      '<p class="geo-panel-kicker">' + qualityLabel(site) + '</p>' +
-      '<h3>' + site.name + '</h3>' +
-      '<p class="geo-panel-place">' + site.place + '</p>' +
-      '<div class="geo-result"><span>Текущий показатель</span><strong>' + activeValue + '</strong></div>' +
-      '<dl class="geo-details">' +
-        '<div><dt>Мощность</dt><dd>' + site.capacityMw.toLocaleString("ru-RU") + " МВт — " + site.capacityLabel + '</dd></div>' +
-        '<div><dt>Энергия ЦОДа</dt><dd>' + numberFormat.format(result.facilityEnergyMWh) + ' МВт·ч/год</dd></div>' +
-        '<div><dt>PUE</dt><dd>' + result.pue.toLocaleString("ru-RU") + " — " + pueDescription + '</dd></div>' +
-        '<div><dt>Коэффициент сети</dt><dd>' + (site.gridFactorKg * 1000).toLocaleString("ru-RU") + ' гCO₂e/кВт·ч — ' + site.gridFactorLabel + '</dd></div>' +
-      '</dl>' +
-      '<div class="formula-block">' +
-        '<strong>Расчёт</strong>' +
-        '<div class="formula-line"><span>E<sub>ЦОД</sub></span><b>=</b><span>' + site.capacityMw + ' МВт × ' + Math.round(result.assumptions.utilization * 100) + '% × 8 760 ч</span></div>' +
-        '<div class="formula-line"><span>CO₂e</span><b>=</b><span>E<sub>ЦОД</sub> × ' + site.gridFactorKg.toLocaleString("ru-RU") + ' тCO₂e/МВт·ч</span></div>' +
-        '<div class="formula-line"><span>Вода<sub>площадка</sub></span><b>=</b><span>(E<sub>ЦОД</sub> / PUE) × ' + result.assumptions.wue.toLocaleString("ru-RU") + ' л/кВт·ч</span></div>' +
-      '</div>' +
-      '<p class="geo-panel-note">Это оценка годовой нагрузки при заданной загрузке. Она не является опубликованным оператором потреблением и не моделирует локальную температуру.</p>' +
-      '<h4>Документы</h4><ul class="source-list">' + sourceMarkup + '</ul>';
+      `<p class="geo-panel-kicker">${escapeHtml(status)}</p>` +
+      `<h3>${escapeHtml(site.name)}</h3>` +
+      `<p class="geo-panel-place">${escapeHtml(site.operator)} · ${escapeHtml(site.place)}</p>` +
+      metricMarkup +
+      `<dl class="geo-details geo-location-details">` +
+        `<div><dt>Страна</dt><dd>${escapeHtml(site.country)}</dd></div>` +
+        `<div><dt>Точность точки</dt><dd>${escapeHtml(site.precision)}</dd></div>` +
+      `</dl>` +
+      `<h4>Источники</h4><ul class="source-list">${formatSources(site.sources)}</ul>`;
   }
 
-  function markerStyle(site, result) {
-    if (!result) {
-      return {
-        radius: 7,
-        color: "#9ca5aa",
-        fillColor: "#3d454b",
-        fillOpacity: 0.8,
-        weight: 2,
-        dashArray: "3 4"
-      };
-    }
-
-    const value = metric === "carbon" ? result.carbonTonnes : result.waterM3;
-    const radius = Math.min(22, Math.max(8, 7 + Math.log10(value + 1) * 2.7));
-
+  function markerStyle(site) {
+    const hasMetrics = getMetrics(site).length > 0;
     return {
-      radius,
-      color: metric === "carbon" ? "#e9a56c" : "#77b8cf",
-      fillColor: metric === "carbon" ? "#d97e3f" : "#4f9cb9",
-      fillOpacity: 0.78,
+      radius: site.id === selectedId ? 10 : 8,
+      color: site.id === selectedId ? "#f1f4f5" : (hasMetrics ? "#e9a56c" : "#9ca5aa"),
+      fillColor: hasMetrics ? "#d97e3f" : "#596269",
+      fillOpacity: 0.86,
       weight: site.id === selectedId ? 3 : 1.5
     };
   }
 
   function renderMarkers() {
     markersLayer.clearLayers();
-
-    data.dataCenters.forEach((site) => {
-      const result = calculate(site);
-      const marker = L.circleMarker(site.coordinates, markerStyle(site, result));
-      const markerText = result
-        ? metric === "carbon"
-          ? numberFormat.format(result.carbonTonnes) + " тCO₂e/год"
-          : numberFormat.format(result.waterM3) + " м³/год"
-        : "Есть только подтверждённое местоположение";
-
+    sites.forEach((site) => {
+      const marker = L.circleMarker(site.coordinates, markerStyle(site));
       marker.bindTooltip(
-        "<strong>" + site.name + "</strong><br>" + site.place + "<br>" + markerText,
+        `<strong>${escapeHtml(site.name)}</strong><br>${escapeHtml(site.place)}`,
         { direction: "top", offset: [0, -8] }
       );
       marker.on("click", () => {
@@ -178,33 +135,19 @@
       marker.addTo(markersLayer);
     });
 
-    const selected = data.dataCenters.find((site) => site.id === selectedId);
-    if (selected) {
-      renderPanel(selected);
-    }
+    const selected = sites.find((site) => site.id === selectedId);
+    if (selected) renderPanel(selected);
   }
 
-  function refreshAssumptionLabels() {
-    utilizationValue.textContent = utilizationControl.value + "%";
-    wueValue.textContent = Number(wueControl.value).toLocaleString("ru-RU") + " л/кВт·ч";
+  if (!sites.length) {
+    panel.innerHTML = "<p>В текущем наборе нет площадок с координатами для отображения на карте.</p>";
+    renderSummary();
+    return;
   }
 
-  metricControl.addEventListener("change", () => {
-    metric = metricControl.value;
-    renderMarkers();
-  });
-  utilizationControl.addEventListener("input", () => {
-    refreshAssumptionLabels();
-    renderMarkers();
-  });
-  wueControl.addEventListener("input", () => {
-    refreshAssumptionLabels();
-    renderMarkers();
-  });
-
-  refreshAssumptionLabels();
+  renderSummary();
   renderMarkers();
-  map.fitBounds(data.dataCenters.map((site) => site.coordinates), {
+  map.fitBounds(sites.map((site) => site.coordinates), {
     padding: [36, 36],
     maxZoom: 4
   });

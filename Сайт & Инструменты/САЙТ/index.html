@@ -11,7 +11,7 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   >
-  <link rel="stylesheet" href="style.css?v=20261009-3">
+  <link rel="stylesheet" href="style.css?v=20261029-1">
 </head>
 
 <body>
@@ -206,42 +206,33 @@
       <div class="section geo-intro">
         <div class="section-heading">
           <p class="eyebrow">04 / ГЕОГРАФИЧЕСКАЯ КАРТА</p>
-          <h2>Что можно оценить<br>по открытым данным.</h2>
+          <h2>Дата-центры<br>на карте.</h2>
         </div>
 
         <p class="geo-description">
-          Цветные точки — сценарная оценка по опубликованной мощности;
-          контурные — подтверждённые площадки, для которых ресурсов недостаточно.
+          Нажми на точку, чтобы увидеть краткую карточку дата-центра.
+          Показатели отображаются только там, где они опубликованы в источнике.
         </p>
       </div>
 
       <div class="geo-layout">
         <div class="geo-workspace">
-          <div class="geo-controls" aria-label="Параметры сценария">
-            <label>
-              Показать
-              <select id="geo-metric">
-                <option value="carbon">Углеродный след</option>
-                <option value="water">Водный след</option>
-              </select>
-            </label>
-
-            <label class="range-control">
-              Загрузка мощности <output id="geo-utilization-value"></output>
-              <input id="geo-utilization" type="range" min="20" max="90" step="5" value="50">
-            </label>
-
-            <label class="range-control">
-              Сценарный WUE <output id="geo-wue-value"></output>
-              <input id="geo-wue" type="range" min="0.1" max="2" step="0.1" value="0.4">
-            </label>
+          <div class="geo-map-summary" id="geo-map-summary" aria-live="polite">
+            <div class="geo-map-stat">
+              <span>Точки на карте</span>
+              <strong>—</strong>
+            </div>
+            <div class="geo-map-stat">
+              <span>С опубликованными метриками</span>
+              <strong>—</strong>
+            </div>
           </div>
 
-          <div id="geo-map-canvas" aria-label="Карта дата-центров с оценками воздействия"></div>
+          <div id="geo-map-canvas" aria-label="Карта дата-центров с интерактивными маркерами"></div>
 
           <p class="geo-disclaimer">
-            Параметры загрузки и WUE — изменяемые сценарные допущения, а не данные операторов.
-            Каждая карточка раскрывает использованные формулы и первичные документы.
+            Маркер означает опубликованную локацию, но не доказывает наличие полного набора
+            экологических показателей. Пропуски не заменяются нулевыми или расчётными значениями.
           </p>
         </div>
 
@@ -539,7 +530,7 @@
   <script src="theme.js?v=20261008-2"></script>
   <script src="script.js?v=20261008-2"></script>
   <script src="d3-map.js?v=20261009-7"></script>
-  <script src="geo-map.js?v=20261009-2"></script>
+  <script src="geo-map.js?v=20261029-1"></script>
   <script src="project-data.js?v=20261022-1"></script>
 
 </body>

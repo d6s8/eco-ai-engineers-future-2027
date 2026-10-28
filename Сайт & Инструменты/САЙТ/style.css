@@ -1037,8 +1037,7 @@ a {
 
 
 .method-card code sub,
-.info-formula sub,
-.formula-line sub {
+.info-formula sub {
   font-size: 0.72em;
   line-height: 0;
   vertical-align: -0.26em;
@@ -1105,48 +1104,37 @@ a {
 }
 
 
-.geo-controls {
+.geo-map-summary {
   display: grid;
-  grid-template-columns: minmax(185px, 0.9fr) minmax(190px, 1fr) minmax(190px, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
 
 
-.geo-controls label {
+.geo-map-stat {
   display: grid;
-  gap: 7px;
-  padding: 12px 14px;
+  gap: 5px;
+  padding: 13px 15px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 14px;
+}
+
+
+.geo-map-stat span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 
-.geo-controls select {
-  width: 100%;
-  padding: 6px 0 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
+.geo-map-stat strong {
   color: var(--text);
-  font: inherit;
-  font-size: 14px;
-}
-
-
-.geo-controls output {
-  color: var(--text);
-  font-size: 14px;
-}
-
-
-.geo-controls input {
-  width: 100%;
-  accent-color: var(--accent-dark);
+  font-size: 19px;
+  line-height: 1;
 }
 
 
@@ -1228,8 +1216,7 @@ a {
 
 
 .geo-panel-place,
-.geo-panel-copy,
-.geo-panel-note {
+.geo-panel-copy {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
@@ -1241,17 +1228,6 @@ a {
 }
 
 
-.geo-result {
-  display: grid;
-  gap: 4px;
-  margin: 22px 0;
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--surface);
-}
-
-
-.geo-result span,
 .geo-details dt,
 .info-metric span {
   color: var(--muted);
@@ -1262,17 +1238,15 @@ a {
 }
 
 
-.geo-result strong {
-  color: var(--text);
-  font-size: 22px;
-  line-height: 1.1;
-}
-
-
 .geo-details {
   display: grid;
   gap: 12px;
   margin: 0;
+}
+
+
+.geo-location-details {
+  margin-top: 20px;
 }
 
 
@@ -1287,40 +1261,6 @@ a {
   color: var(--text);
   font-size: 13px;
   line-height: 1.45;
-}
-
-
-.formula-block {
-  margin-top: 22px;
-}
-
-
-.formula-block strong {
-  font-size: 12px;
-}
-
-
-.formula-line {
-  display: grid;
-  grid-template-columns: max-content 12px minmax(0, 1fr);
-  gap: 7px;
-  align-items: baseline;
-  margin-top: 8px;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font-family: "Cambria Math", Cambria, "Times New Roman", serif;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-
-.formula-line > span:first-child,
-.formula-line b {
-  color: var(--accent-dark);
-  font-weight: 700;
 }
 
 
@@ -1972,7 +1912,7 @@ a {
   }
 
 
-  .geo-controls {
+  .geo-map-summary {
     grid-template-columns: 1fr;
   }
 
