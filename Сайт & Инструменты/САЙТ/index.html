@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title> ECOAI — Экологический след ИИ </title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  >
+  <link rel="stylesheet" href="style.css?v=20261009-3">
+</head>
+
+<body>
+
+  <header class="header">
+    <a href="#top" class="logo"> ECOAI </a>
+
+    <nav class="nav">
+      <a href="#about"> О проекте </a>
+      <a href="#map"> Карта </a>
+      <a href="#methodology"> Методика </a>
+      <a href="#geo-map"> Геокарта </a>
+      <a href="#data"> Данные </a>
+      <a href="#research"> Исследования </a>
+      <a href="#solutions"> Решения </a>
+    </nav>
+
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      type="button"
+      aria-label="Включить тёмную тему"
+      title="Включить тёмную тему"
+    >
+      <span aria-hidden="true">◐</span>
+    </button>
+  </header>
+
+
+  <main id="top">
+
+    <section class="hero">
+      <div class="hero-content">
+        <p class="eyebrow">ИИ × ЭКОЛОГИЯ</p>
+
+        <h1>
+          Экологический<br>
+          <span>след ИИ</span>
+        </h1>
+
+        <p class="hero-text">
+          Как развитие искусственного интеллекта влияет
+          на энергопотребление, воду, оборудование и выбросы.
+        </p>
+
+      </div>
+
+      <div class="hero-orbit">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="orbit-dot"></div>
+      </div>
+    </section>
+
+
+    <section class="section about" id="about">
+
+      <div class="section-heading">
+        <p class="eyebrow">01 / КОНТЕКСТ</p>
+
+        <h2>
+          ИИ существует<br>
+          не только в коде.
+        </h2>
+      </div>
+
+      <div class="about-text">
+        <p>
+          За каждой моделью искусственного интеллекта стоят
+          дата-центры, серверы, микрочипы, электроэнергия
+          и системы охлаждения.
+        </p>
+
+        <p>
+          Поэтому экологический след ИИ складывается из целой
+          цепочки процессов — от добычи сырья до эксплуатации
+          оборудования и его утилизации.
+        </p>
+      </div>
+
+    </section>
+
+
+    <section class="map-section" id="map">
+
+      <div class="section map-intro">
+
+        <div class="section-heading">
+          <p class="eyebrow">02 / ИНТЕРАКТИВНОЕ ИССЛЕДОВАНИЕ</p>
+
+          <h2>Посмотри, из чего состоит след ИИ</h2>
+        </div>
+
+        <p class="map-description">
+          Нажми на направление, чтобы раскрыть его основные
+          составляющие. Затем выбери отдельный узел,
+          чтобы узнать подробнее.
+        </p>
+
+      </div>
+
+
+      <div class="map-layout">
+
+        <div class="map-container">
+
+          <svg
+            id="mindmap"
+            viewBox="0 0 1300 1000"
+            preserveAspectRatio="xMidYMid meet"
+            aria-label="Интерактивная карта экологического следа ИИ"
+          ></svg>
+
+          <div class="map-controls" aria-label="Управление картой">
+            <button type="button" data-map-zoom-in aria-label="Увеличить карту">+</button>
+            <button type="button" data-map-zoom-out aria-label="Уменьшить карту">−</button>
+            <button type="button" data-map-reset aria-label="Сбросить масштаб">○</button>
+          </div>
+
+        </div>
+
+
+        <aside class="map-info" id="map-info">
+
+          <div class="info-placeholder">
+            <span class="info-symbol">+</span>
+
+            <p>
+              Выбери любой узел карты,
+              чтобы увидеть дополнительную информацию.
+            </p>
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <section class="section methodology" id="methodology">
+
+      <div class="section-heading methodology-heading">
+        <p class="eyebrow">03 / МЕТОДИКА</p>
+
+        <h2>Цифры, формулы<br>и границы оценки.</h2>
+      </div>
+
+      <p class="methodology-intro">
+        Карта не подменяет измерения. Она отделяет опубликованные значения
+        от сценарных оценок и показывает, из каких величин получается результат.
+      </p>
+
+      <div class="method-grid">
+        <article class="method-card">
+          <p class="method-tag">ЭНЕРГИЯ</p>
+          <h3>Энергоэффективность ЦОДа</h3>
+          <code>PUE = E<sub>ЦОД</sub> / E<sub>IT</sub></code>
+          <p>Если известна энергия IT-оборудования, PUE позволяет оценить полную энергию площадки.</p>
+          <a href="https://www.iso.org/standard/30134-2?browse=tc" target="_blank" rel="noreferrer">ISO/IEC 30134-2 ↗</a>
+        </article>
+
+        <article class="method-card">
+          <p class="method-tag">УГЛЕРОД</p>
+          <h3>Выбросы от электроэнергии</h3>
+          <code>CO₂e = E<sub>ЦОД</sub> × EF<sub>сети</sub></code>
+          <p>Энергопотребление умножается на коэффициент выбросов энергосистемы за конкретный год.</p>
+          <a href="https://ghgprotocol.org/sites/default/files/GHG%20Protocol%20Scope%202%20Guidance.pdf" target="_blank" rel="noreferrer">GHG Protocol Scope 2 ↗</a>
+        </article>
+
+        <article class="method-card">
+          <p class="method-tag">ВОДА</p>
+          <h3>Операционное водопотребление</h3>
+          <code>Вода = WUE × E<sub>IT</sub></code>
+          <p>WUE показывает, сколько воды площадка использует на единицу энергии IT-оборудования.</p>
+          <a href="https://www.thegreengrid.org/system/files/store/WUE_v1.pdf" target="_blank" rel="noreferrer">The Green Grid WUE ↗</a>
+        </article>
+
+        <article class="method-card">
+          <p class="method-tag">ГРАНИЦЫ МОДЕЛИ</p>
+          <h3>Не рисуем ложную точность</h3>
+          <p>CO₂ ЦОДа не переводится в «температуру в радиусе N км». Для такого вывода потребовалась бы отдельная модель тепловых выбросов и метеоданных.</p>
+          <a href="https://www.iso.org/standard/37456.html" target="_blank" rel="noreferrer">ISO 14040: жизненный цикл ↗</a>
+        </article>
+      </div>
+
+    </section>
+
+
+    <section class="geo-section" id="geo-map">
+
+      <div class="section geo-intro">
+        <div class="section-heading">
+          <p class="eyebrow">04 / ГЕОГРАФИЧЕСКАЯ КАРТА</p>
+          <h2>Что можно оценить<br>по открытым данным.</h2>
+        </div>
+
+        <p class="geo-description">
+          Цветные точки — сценарная оценка по опубликованной мощности;
+          контурные — подтверждённые площадки, для которых ресурсов недостаточно.
+        </p>
+      </div>
+
+      <div class="geo-layout">
+        <div class="geo-workspace">
+          <div class="geo-controls" aria-label="Параметры сценария">
+            <label>
+              Показать
+              <select id="geo-metric">
+                <option value="carbon">Углеродный след</option>
+                <option value="water">Водный след</option>
+              </select>
+            </label>
+
+            <label class="range-control">
+              Загрузка мощности <output id="geo-utilization-value"></output>
+              <input id="geo-utilization" type="range" min="20" max="90" step="5" value="50">
+            </label>
+
+            <label class="range-control">
+              Сценарный WUE <output id="geo-wue-value"></output>
+              <input id="geo-wue" type="range" min="0.1" max="2" step="0.1" value="0.4">
+            </label>
+          </div>
+
+          <div id="geo-map-canvas" aria-label="Карта дата-центров с оценками воздействия"></div>
+
+          <p class="geo-disclaimer">
+            Параметры загрузки и WUE — изменяемые сценарные допущения, а не данные операторов.
+            Каждая карточка раскрывает использованные формулы и первичные документы.
+          </p>
+        </div>
+
+        <aside class="geo-panel" id="geo-map-panel" aria-live="polite"></aside>
+      </div>
+
+    </section>
+
+
+    <section class="section data-explorer" id="data">
+
+      <div class="section-heading">
+        <p class="eyebrow">05 / ДАННЫЕ ПАЙПЛАЙНА</p>
+        <h2>Изучить собранную информацию</h2>
+      </div>
+
+      <p class="data-intro">
+        Здесь доступны результаты обработки источников: каталог дата-центров,
+        извлечённые экологические метрики и реестр первоисточников.
+        Пустое поле означает, что значение не опубликовано или не подтверждено.
+      </p>
+
+      <div class="data-summary" id="data-summary" aria-live="polite"></div>
+
+      <div class="data-toolbar" aria-label="Фильтры данных">
+        <label>
+          Набор данных
+          <select id="data-kind">
+            <option value="dataCenters">Дата-центры</option>
+            <option value="countries">Страны</option>
+            <option value="metrics">Метрики</option>
+            <option value="sources">Источники</option>
+          </select>
+        </label>
+
+        <label>
+          Поиск
+          <input id="data-search" type="search" placeholder="Компания, страна или название">
+        </label>
+
+        <label>
+          Сортировка
+          <select id="data-sort">
+            <option value="default">По умолчанию</option>
+            <option value="name-asc">По названию, А–Я</option>
+            <option value="name-desc">По названию, Я–А</option>
+          </select>
+        </label>
+
+        <label id="data-country-control">
+          Страна
+          <select id="data-country">
+            <option value="">Все страны</option>
+          </select>
+        </label>
+
+        <label id="data-status-control">
+          Статус
+          <select id="data-status">
+            <option value="">Все статусы</option>
+          </select>
+        </label>
+
+        <label id="data-source-control" hidden>
+          Источник
+          <select id="data-source">
+            <option value="">Все источники</option>
+          </select>
+        </label>
+
+        <label id="data-region-control" hidden>
+          Регион
+          <select id="data-region">
+            <option value="">Все регионы</option>
+          </select>
+        </label>
+
+        <label id="data-metric-control" hidden>
+          Метрика
+          <select id="data-metric">
+            <option value="">Все метрики</option>
+          </select>
+        </label>
+
+        <label id="data-year-control" hidden>
+          Год
+          <select id="data-year">
+            <option value="">Все годы</option>
+          </select>
+        </label>
+
+        <label id="data-type-control" hidden>
+          Тип источника
+          <select id="data-type">
+            <option value="">Все типы источника</option>
+          </select>
+        </label>
+
+        <button class="data-reset" id="data-reset" type="button">Сбросить</button>
+      </div>
+
+      <div class="data-layout">
+        <div class="data-results">
+          <p class="data-message" id="data-message" aria-live="polite"></p>
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead id="data-table-head"></thead>
+              <tbody id="data-table-body"></tbody>
+            </table>
+          </div>
+          <div class="data-pagination" id="data-pagination"></div>
+        </div>
+
+        <aside class="data-detail" id="data-detail" aria-live="polite">
+          <p class="data-detail-placeholder">Выберите строку, чтобы увидеть подробности и источник.</p>
+        </aside>
+      </div>
+
+      <p class="data-disclaimer" id="data-disclaimer"></p>
+
+    </section>
+
+
+    <section class="section research" id="research">
+
+      <div class="section-heading">
+        <p class="eyebrow">06 / ИССЛЕДОВАНИЯ</p>
+
+        <h2>Из чего складывается воздействие</h2>
+      </div>
+
+
+      <div class="research-grid">
+
+        <article class="research-card">
+          <span class="card-number">01</span>
+
+          <h3>Энергопотребление</h3>
+
+          <p>
+            Обучение больших моделей, инференс и постоянные
+            пользовательские запросы требуют вычислительных
+            ресурсов и электроэнергии.
+          </p>
+        </article>
+
+
+        <article class="research-card">
+          <span class="card-number">02</span>
+
+          <h3>Расход воды</h3>
+
+          <p>
+            Дата-центры используют системы охлаждения,
+            а производство электроэнергии и микрочипов
+            также связано с водным следом.
+          </p>
+        </article>
+
+
+        <article class="research-card">
+          <span class="card-number">03</span>
+
+          <h3>Оборудование</h3>
+
+          <p>
+            Серверы и микрочипы требуют сырья, энергии
+            и воды. После эксплуатации возникает проблема
+            электронных отходов.
+          </p>
+        </article>
+
+
+        <article class="research-card">
+          <span class="card-number">04</span>
+
+          <h3>Выбросы CO₂</h3>
+
+          <p>
+            Углеродный след зависит от энергомикса,
+            региона, эффективности инфраструктуры
+            и жизненного цикла оборудования.
+          </p>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <section class="section solutions" id="solutions">
+
+      <div class="section-heading">
+        <p class="eyebrow">07 / СТРАТЕГИИ</p>
+
+        <h2>Пути снижения воздействия</h2>
+      </div>
+
+
+      <div class="solutions-list">
+
+        <div class="solution">
+          <span>01</span>
+
+          <div>
+            <h3>Энергоэффективные модели</h3>
+
+            <p>
+              Оптимизация архитектуры, сжатие моделей
+              и сокращение избыточных вычислений.
+            </p>
+          </div>
+        </div>
+
+
+        <div class="solution">
+          <span>02</span>
+
+          <div>
+            <h3>Эффективная инфраструктура</h3>
+
+            <p>
+              Более эффективные дата-центры, специализированные
+              ускорители и интеллектуальные системы охлаждения.
+            </p>
+          </div>
+        </div>
+
+
+        <div class="solution">
+          <span>03</span>
+
+          <div>
+            <h3>Низкоуглеродная энергетика</h3>
+
+            <p>
+              Использование электроэнергии с меньшей углеродной
+              интенсивностью и интеграция возобновляемых источников.
+            </p>
+          </div>
+        </div>
+
+
+        <div class="solution">
+          <span>04</span>
+
+          <div>
+            <h3>Прозрачность</h3>
+
+            <p>
+              Публичная отчётность об энергопотреблении,
+              воде, выбросах и жизненном цикле оборудования.
+            </p>
+          </div>
+        </div>
+
+
+        <div class="solution">
+          <span>05</span>
+
+          <div>
+            <h3>Циркулярное использование оборудования</h3>
+
+            <p>
+              Продление срока службы, ремонт, повторное
+              использование и переработка компонентов.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer class="footer">
+
+    <div class="footer-logo">
+      ECOAI
+    </div>
+
+    <p>
+      Исследование экологического воздействия искусственного интеллекта.
+    </p>
+
+  </footer>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="site-data.js?v=20261022-1"></script>
+  <script src="research-data.js?v=20261009-2"></script>
+  <script src="theme.js?v=20261008-2"></script>
+  <script src="script.js?v=20261008-2"></script>
+  <script src="d3-map.js?v=20261009-7"></script>
+  <script src="geo-map.js?v=20261009-2"></script>
+  <script src="project-data.js?v=20261022-1"></script>
+
+</body>
+</html>

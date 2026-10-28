@@ -1,0 +1,3 @@
+Source_ID,Source_Name,Source_URL,Source_Type,Source_Document,Retrieved_At,Local_Path,License_or_Use_Notes,Notes
+51f9aea3748b4b1df48a,Экологический отчёт,,pdf,Экологические последствия работы ЦОД.pdf,2026-10-20T23:58:39.329159+00:00,..\Экологические последствия работы ЦОД.pdf,,
+fae070585816a170626b,ATLAS / Global Data Center Map,https://data-center-map.com/,catalog_csv,,2026-10-20T23:58:42.501486+00:00,,Attribution required: Data centers (c) Ringmast4r - Global-Data-Center-Map.,"Download URL: https://raw.githubusercontent.com/Ringmast4r/Global-Data-Center-Map/refs/heads/main/datacenters.csv; public snapshot, not a live feed."
