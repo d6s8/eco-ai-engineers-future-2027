@@ -1,6 +1,7 @@
 """Validation and quality flags; suspicious values are never corrected silently."""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Iterable
 import pandas as pd
 
@@ -63,7 +64,10 @@ def validate_metrics(frame: pd.DataFrame) -> list[ValidationIssue]:
                 issues.append(ValidationIssue("warning", "pue_below_one", "PUE is below 1; retain and review.", int(index)))
         if pd.notna(row["Value"]) and not isinstance(row["Value"], (int, float)):
             issues.append(ValidationIssue("error", "metric_type", "Metric Value is not numeric.", int(index)))
-    keys = ["DataCenter_ID", "Year", "Metric_Name", "Metric_Scope", "Metric_Method", "Metric_Unit"]
+    keys = [
+        "DataCenter_ID", "Year", "Metric_Name", "Metric_Scope", "Metric_Method", "Metric_Unit",
+        "Source_Document", "Page_Number",
+    ]
     existing = [key for key in keys if key in frame.columns]
     duplicate_mask = frame.duplicated(subset=existing, keep=False)
     for index in frame.index[duplicate_mask]:
@@ -74,3 +78,27 @@ def validate_metrics(frame: pd.DataFrame) -> list[ValidationIssue]:
 def issues_to_frame(issues: Iterable[ValidationIssue]) -> pd.DataFrame:
     """Convert validation issues to a serializable table."""
     return pd.DataFrame([issue.__dict__ for issue in issues], columns=["severity", "code", "message", "row_index"])
+
+
+def validate_saved_data(datacenters_path: Path, metrics_path: Path) -> list[ValidationIssue]:
+    """Validate saved CSV files without changing them.
+
+    Missing files are warnings because a first-time checkout may not have
+    downloaded or parsed any source yet. Malformed files are errors.
+    """
+    issues: list[ValidationIssue] = []
+    datasets = (
+        (datacenters_path, validate_datacenters),
+        (metrics_path, validate_metrics),
+    )
+    for path, validator in datasets:
+        if not path.exists():
+            issues.append(ValidationIssue("warning", "missing_file", f"File not found: {path}"))
+            continue
+        try:
+            frame = pd.read_csv(path)
+        except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError) as exc:
+            issues.append(ValidationIssue("error", "unreadable_file", f"Could not read {path}: {exc}"))
+            continue
+        issues.extend(validator(frame))
+    return issues

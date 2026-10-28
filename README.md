@@ -29,9 +29,12 @@ python -m data_center_ecology.main pdf "..\..\..\Презентации & Таб
 python -m data_center_ecology.main summary
 $env:DCE_SITE_DIR = (Resolve-Path "..\..\..\Сайт & Инструменты\САЙТ").Path
 python -m data_center_ecology.main export-site
+python -m data_center_ecology.main validate --strict
 ```
 
 Пайплайн не заменяет неизвестные значения нулём. Для каждого показателя сохраняются год, охват, страница PDF и фрагмент исходного текста, если они доступны.
+
+Команда `validate --strict` — критерий самопроверки перед публикацией: она проверяет схемы CSV, диапазоны координат и годов, охват метрик, дубликаты и подозрительные значения PUE. Ошибки дают ненулевой код завершения; предупреждения требуют ручной оценки.
 
 ## Сайт
 

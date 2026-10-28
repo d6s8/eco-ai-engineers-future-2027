@@ -13,6 +13,7 @@ from .parsers.pdf_parser import extract_pdf_metrics
 from .sources.atlas import AtlasCsvAdapter, ATLAS_CSV_URL, ATLAS_SOURCE_URL
 from .site_export import export_site_data
 from .storage import build_summary, sanitize_country_values, save_datacenters, save_metrics, save_sources, save_russian_copy
+from .validation import validate_saved_data
 
 
 def configure_logging(settings: Settings) -> None:
@@ -56,6 +57,25 @@ def run_pdf(settings: Settings, pdf_path: Path, source_name: str, source_url: st
     save_russian_copy(sources, settings.normalized_dir / "источники.csv")
 
 
+def run_validate(settings: Settings, strict: bool = False) -> None:
+    """Check stored datasets and optionally fail on errors."""
+    issues = validate_saved_data(
+        settings.normalized_dir / "datacenters.csv",
+        settings.normalized_dir / "metrics_history.csv",
+    )
+    if not issues:
+        logging.getLogger(__name__).info("Validation passed: no issues found.")
+        return
+    for issue in issues:
+        location = f" row={issue.row_index}" if issue.row_index is not None else ""
+        logging.getLogger(__name__).warning("[%s] %s%s: %s", issue.code, issue.severity, location, issue.message)
+    errors = sum(issue.severity == "error" for issue in issues)
+    warnings = sum(issue.severity == "warning" for issue in issues)
+    logging.getLogger(__name__).info("Validation summary: %s error(s), %s warning(s).", errors, warnings)
+    if strict and errors:
+        raise SystemExit(1)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -73,6 +93,8 @@ def build_parser() -> argparse.ArgumentParser:
     export = sub.add_parser("export-site", help="export normalized data for the existing website")
     export.add_argument("--output", type=Path, default=None)
     sub.add_parser("sanitize", help="normalize country fields in stored datasets")
+    validate = sub.add_parser("validate", help="check normalized CSV files without changing them")
+    validate.add_argument("--strict", action="store_true", help="return exit code 1 when errors are found")
     return parser
 
 
@@ -105,6 +127,8 @@ def main() -> None:
             save_russian_copy(datacenters, settings.normalized_dir / "дата_центры.csv")
         if not metrics.empty:
             save_russian_copy(metrics, settings.normalized_dir / "метрики_история.csv")
+    elif args.command == "validate":
+        run_validate(settings, args.strict)
 
 
 if __name__ == "__main__":

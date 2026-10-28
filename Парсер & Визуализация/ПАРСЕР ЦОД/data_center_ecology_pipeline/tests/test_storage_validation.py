@@ -3,7 +3,7 @@ import pandas as pd
 
 from data_center_ecology.models import DataCenterRecord, MetricRecord, DATACENTER_COLUMNS, METRIC_COLUMNS
 from data_center_ecology.storage import save_datacenters, save_metrics
-from data_center_ecology.validation import validate_datacenters, validate_metrics
+from data_center_ecology.validation import validate_datacenters, validate_metrics, validate_saved_data
 
 
 def test_storage_is_idempotent_and_preserves_missing(tmp_path: Path):
@@ -32,3 +32,9 @@ def test_validation_flags_bad_coordinate_and_pue():
     assert any(issue.code == "latitude_range" for issue in validate_datacenters(datacenters))
     metrics = pd.DataFrame([{"DataCenter_ID": "x", "Year": 2024, "Metric_Name": "PUE", "Value": 0.8, "Metric_Scope": "facility", "Metric_Unit": "ratio"}])
     assert any(issue.code == "pue_below_one" for issue in validate_metrics(metrics))
+
+
+def test_validate_saved_data_reports_missing_files_as_warnings(tmp_path: Path):
+    issues = validate_saved_data(tmp_path / "datacenters.csv", tmp_path / "metrics.csv")
+    assert len(issues) == 2
+    assert all(issue.code == "missing_file" for issue in issues)

@@ -44,7 +44,12 @@ def _append_unique(path: Path, rows: list[dict], columns: list[str], key: list[s
     path.parent.mkdir(parents=True, exist_ok=True)
     incoming = pd.DataFrame(rows, columns=columns)
     existing = pd.read_csv(path) if path.exists() else pd.DataFrame(columns=columns)
-    combined = pd.concat([existing, incoming], ignore_index=True)
+    if existing.empty:
+        combined = incoming.copy()
+    elif incoming.empty:
+        combined = existing.copy()
+    else:
+        combined = pd.concat([existing, incoming], ignore_index=True)
     if not combined.empty:
         combined = combined.drop_duplicates(subset=key, keep="last")
         combined = combined.sort_values(key, kind="stable", na_position="last").reset_index(drop=True)
