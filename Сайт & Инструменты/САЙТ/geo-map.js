@@ -177,15 +177,14 @@
   function markerStyle(feature, isSelected) {
     const hasMetrics = getMetrics(getContext(feature)).length > 0;
     const zoom = map.getZoom();
-    const baseRadius = zoom >= 9 ? 9 : (zoom >= 7 ? 7 : (zoom >= 5 ? 4.5 : 2.5));
-    const showOutline = zoom >= 5 || isSelected;
+    const baseRadius = zoom >= 7 ? 9 : (zoom >= 5 ? 8 : 6);
     return {
       renderer,
       radius: isSelected ? baseRadius + 3 : baseRadius,
-      color: isSelected ? "#ffffff" : (showOutline ? "#f1f4f5" : (hasMetrics ? "#f28a32" : "#2385a8")),
+      color: isSelected ? "#ffffff" : "#f1f4f5",
       fillColor: hasMetrics ? "#f28a32" : "#2385a8",
-      fillOpacity: zoom >= 5 ? 0.92 : 0.82,
-      weight: isSelected ? 3 : (showOutline ? 1 : 0)
+      fillOpacity: 0.96,
+      weight: isSelected ? 3 : 1.5
     };
   }
 
