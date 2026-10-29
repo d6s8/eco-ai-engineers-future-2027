@@ -43,11 +43,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 
 body {
   margin: 0;
+
+  overflow-x: clip;
 
   background: var(--bg);
   color: var(--text);
@@ -1222,6 +1225,7 @@ a {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 
@@ -1263,6 +1267,7 @@ a {
   color: var(--text);
   font-size: 13px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 
@@ -1282,6 +1287,7 @@ a {
   color: var(--muted);
   font-size: 11px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 
