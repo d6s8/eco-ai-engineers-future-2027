@@ -321,6 +321,7 @@
 
   function renderTable(records) {
     const configuration = configurations[state.kind];
+    table.className = `data-table data-table-${state.kind}`;
     tableHead.replaceChildren();
     tableBody.replaceChildren();
     const headerRow = createElement("tr");
