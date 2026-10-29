@@ -176,19 +176,23 @@
 
   function markerStyle(feature, isSelected) {
     const hasMetrics = getMetrics(getContext(feature)).length > 0;
+    const zoom = map.getZoom();
+    const baseRadius = zoom >= 7 ? 9 : (zoom >= 5 ? 8 : 6);
     return {
       renderer,
-      radius: isSelected ? 7 : 4,
-      color: isSelected ? "#f1f4f5" : (hasMetrics ? "#e9a56c" : "#89949b"),
-      fillColor: hasMetrics ? "#d97e3f" : "#596269",
-      fillOpacity: 0.82,
-      weight: isSelected ? 2 : 1
+      radius: isSelected ? baseRadius + 3 : baseRadius,
+      color: isSelected ? "#ffffff" : "#f1f4f5",
+      fillColor: hasMetrics ? "#f28a32" : "#2385a8",
+      fillOpacity: 0.96,
+      weight: isSelected ? 3 : 1.5
     };
   }
 
   function updateMarkerStyles() {
     markersById.forEach((entry, id) => entry.marker.setStyle(markerStyle(entry.feature, id === selectedId)));
   }
+
+  map.on("zoomend", updateMarkerStyles);
 
   function renderMarkers(features) {
     markersLayer.clearLayers();
