@@ -1893,12 +1893,30 @@ a {
 /* Readability */
 
 body {
+  font-size: 17px;
   line-height: 1.7;
 }
 
 
+.hero-text,
+.about-text p,
 .map-description,
+.methodology-intro,
+.data-intro,
 .geo-description,
+.research-card p,
+.solution p {
+  font-size: clamp(18px, 1.35vw, 20px);
+  line-height: 1.78;
+}
+
+
+.method-card p:not(.method-tag) {
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+
 .info-placeholder p,
 .info-text,
 .geo-panel-place,
@@ -1911,6 +1929,13 @@ body {
 .data-evidence {
   font-size: 14px;
   line-height: 1.7;
+}
+
+
+.info-placeholder p,
+.info-text {
+  font-size: 16px;
+  line-height: 1.75;
 }
 
 
