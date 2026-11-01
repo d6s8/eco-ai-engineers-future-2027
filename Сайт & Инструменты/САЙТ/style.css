@@ -4,10 +4,10 @@
   --surface-2: #f9fbfc;
 
   --text: #273139;
-  --muted: #6b7a83;
+  --muted: #536671;
 
   --accent: #8fa8b5;
-  --accent-dark: #607e8d;
+  --accent-dark: #4f6f7f;
 
   --line: #bdcbd3;
   --border: #d4dfe4;
@@ -23,10 +23,10 @@
   --surface-2: #222d34;
 
   --text: #e6edf0;
-  --muted: #a3b1b8;
+  --muted: #b7c4ca;
 
   --accent: #9eb5c0;
-  --accent-dark: #c4d3d9;
+  --accent-dark: #d0dee4;
 
   --line: #556872;
   --border: #354650;
@@ -63,6 +63,9 @@ body {
     sans-serif;
 
   line-height: 1.6;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 
   transition:
     background-color 0.35s ease,
@@ -1808,6 +1811,65 @@ a {
 
 .data-disclaimer {
   margin: 14px 4px 0;
+}
+
+
+/* Readability */
+
+body {
+  line-height: 1.7;
+}
+
+
+.map-description,
+.geo-description,
+.info-placeholder p,
+.info-text,
+.geo-panel-place,
+.geo-panel-copy,
+.geo-disclaimer,
+.data-message,
+.data-detail-placeholder,
+.data-disclaimer,
+.data-source-link,
+.data-evidence {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+.geo-details dt,
+.info-metric span,
+.data-detail-field dt {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+
+.data-table {
+  font-size: 13px;
+}
+
+
+.data-table th {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+
+.data-table th,
+.data-table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+
+.method-tag,
+.geo-panel-kicker,
+.info-method-label,
+.data-detail-kicker {
+  font-size: 12px;
+  letter-spacing: 0.09em;
 }
 
 
