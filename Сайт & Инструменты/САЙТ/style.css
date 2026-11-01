@@ -1,38 +1,38 @@
 :root {
-  --bg: #f4f5f2;
-  --surface: #e9ece8;
-  --surface-2: #ffffff;
+  --bg: #f1f4f6;
+  --surface: #e5ebef;
+  --surface-2: #f9fbfc;
 
-  --text: #303632;
-  --muted: #737b76;
+  --text: #273139;
+  --muted: #6b7a83;
 
-  --accent: #879b91;
-  --accent-dark: #667970;
+  --accent: #8fa8b5;
+  --accent-dark: #607e8d;
 
-  --line: #c8d1cc;
-  --border: #d8deda;
+  --line: #bdcbd3;
+  --border: #d4dfe4;
 
-  --map-node: #ffffff;
-  --map-active: #edf2ee;
+  --map-node: #f9fbfc;
+  --map-active: #e8f0f4;
 }
 
 
 [data-theme="dark"] {
-  --bg: #111315;
-  --surface: #1b1e21;
-  --surface-2: #24282c;
+  --bg: #11171b;
+  --surface: #1a2329;
+  --surface-2: #222d34;
 
-  --text: #f0f2f3;
-  --muted: #a4a9ad;
+  --text: #e6edf0;
+  --muted: #a3b1b8;
 
-  --accent: #aeb4b8;
-  --accent-dark: #d4d8da;
+  --accent: #9eb5c0;
+  --accent-dark: #c4d3d9;
 
-  --line: #596168;
-  --border: #3b4147;
+  --line: #556872;
+  --border: #354650;
 
-  --map-node: #292e33;
-  --map-active: #343a40;
+  --map-node: #26333a;
+  --map-active: #31414a;
 }
 
 
@@ -56,9 +56,10 @@ body {
   color: var(--text);
 
   font-family:
+    "Segoe UI Variable",
+    "Segoe UI",
     Inter,
-    Arial,
-    Helvetica,
+    system-ui,
     sans-serif;
 
   line-height: 1.6;
@@ -90,11 +91,11 @@ a {
 
   padding: 0 5vw;
 
-  background: rgba(244, 245, 242, 0.88);
+  background: rgba(241, 244, 246, 0.88);
 
   backdrop-filter: blur(12px);
 
-  border-bottom: 1px solid rgba(200, 209, 204, 0.7);
+  border-bottom: 1px solid rgba(189, 203, 211, 0.78);
 
   z-index: 1100;
 }
@@ -419,9 +420,9 @@ a {
   background:
     radial-gradient(
       circle at center,
-      #ffffff 0%,
-      #fbfcfb 55%,
-      #f1f4f1 100%
+      #f9fbfc 0%,
+      #f3f6f8 55%,
+      #e9eff3 100%
     );
 
   border: 1px solid var(--border);
@@ -449,9 +450,9 @@ a {
   background:
     radial-gradient(
       circle at center,
-      #2d3237 0%,
-      #202428 55%,
-      #15181b 100%
+      #2b383f 0%,
+      #202a30 55%,
+      #151b20 100%
     );
 }
 
@@ -721,9 +722,10 @@ a {
   fill: var(--text);
 
   font-family:
+    "Segoe UI Variable",
+    "Segoe UI",
     Inter,
-    Arial,
-    Helvetica,
+    system-ui,
     sans-serif;
 
   font-size: 13px;
@@ -753,7 +755,7 @@ a {
 
 
 .map-node.main .map-node-shape {
-  fill: #f2f7f3;
+  fill: var(--map-active);
 
   stroke: var(--accent);
 
@@ -762,32 +764,32 @@ a {
 
 
 [data-theme="dark"] .map-node.main .map-node-shape {
-  fill: #343a40;
+  fill: var(--map-active);
 
-  stroke: #8f989f;
+  stroke: var(--accent);
 }
 
 
 .map-node.child .map-node-shape {
-  fill: #ffffff;
+  fill: var(--surface-2);
 }
 
 
 [data-theme="dark"] .map-node.child .map-node-shape {
-  fill: #292e33;
+  fill: var(--map-node);
 }
 
 
 .map-node.leaf .map-node-shape {
-  fill: #fbfcfb;
+  fill: var(--surface-2);
 
-  stroke: #d3ddd7;
+  stroke: var(--border);
 }
 
 
 [data-theme="dark"] .map-node.leaf .map-node-shape {
-  fill: #22272b;
-  stroke: #50575e;
+  fill: var(--map-node);
+  stroke: var(--line);
 }
 
 
@@ -1170,7 +1172,7 @@ a {
 .leaflet-container {
   background: #1d2429;
   color: #eaf0f2;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
 }
 
 
