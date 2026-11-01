@@ -1102,8 +1102,9 @@ a {
   width: min(1400px, 94%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 25px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.72fr);
+  gap: 28px;
+  align-items: start;
 }
 
 
@@ -1115,15 +1116,16 @@ a {
 .geo-map-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 
 .geo-map-stat {
   display: grid;
   gap: 5px;
-  padding: 13px 15px;
+  min-width: 0;
+  padding: 15px 17px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -1132,10 +1134,11 @@ a {
 
 .geo-map-stat span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  overflow-wrap: break-word;
 }
 
 
@@ -1148,7 +1151,7 @@ a {
 
 #geo-map-canvas {
   position: relative;
-  height: 600px;
+  height: clamp(460px, 44vw, 600px);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -1216,11 +1219,11 @@ a {
 
 
 .geo-panel {
-  height: 600px;
-  max-height: 600px;
+  height: clamp(460px, 44vw, 600px);
+  max-height: none;
   align-self: start;
-  margin-top: 64px;
-  padding: 28px;
+  margin-top: 70px;
+  padding: 30px 28px;
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--surface-2);
@@ -1233,6 +1236,7 @@ a {
   margin: 0;
   font-size: 25px;
   line-height: 1.12;
+  overflow-wrap: break-word;
 }
 
 
@@ -1247,12 +1251,31 @@ a {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 
 .geo-panel-place {
   margin: 8px 0 0;
+}
+
+
+.geo-panel > .geo-details:not(.geo-location-details) {
+  margin-top: 22px;
+}
+
+
+.geo-panel > .geo-location-details {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+
+.geo-panel > h4 {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
 }
 
 
@@ -1287,9 +1310,9 @@ a {
 .geo-details dd {
   margin: 0;
   color: var(--text);
-  font-size: 13px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
 }
 
 
@@ -1307,9 +1330,9 @@ a {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
 }
 
 
@@ -1485,8 +1508,8 @@ a {
 
 .data-filter-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px 12px;
   align-items: end;
 }
 
@@ -1504,7 +1527,7 @@ a {
   background: var(--surface-2);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 
@@ -1533,8 +1556,8 @@ a {
 .data-layout {
   display: grid;
   align-items: start;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.72fr);
+  gap: 24px;
   margin-top: 18px;
 }
 
@@ -1542,7 +1565,7 @@ a {
 .data-results,
 .data-detail {
   min-width: 0;
-  padding: 20px;
+  padding: 24px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 20px;
@@ -1573,34 +1596,61 @@ a {
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  -webkit-overflow-scrolling: touch;
 }
 
 
 .data-table {
   width: 100%;
-  min-width: 720px;
-  table-layout: fixed;
+  min-width: 820px;
+  table-layout: auto;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 
 .data-table th,
 .data-table td {
-  padding: 11px 10px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
   text-align: left;
   vertical-align: top;
+  line-height: 1.5;
 }
 
 
 .data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
   color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  line-height: 1.35;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
   text-transform: uppercase;
+  border-bottom: 2px solid var(--line);
+}
+
+
+.data-table th:first-child,
+.data-table td:first-child {
+  padding-left: 18px;
+}
+
+
+.data-table th:last-child,
+.data-table td:last-child {
+  padding-right: 18px;
+}
+
+
+.data-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface) 42%, transparent);
 }
 
 
@@ -1688,6 +1738,17 @@ a {
 }
 
 
+.data-table-countries {
+  min-width: 520px;
+}
+
+
+.data-table-metrics,
+.data-table-sources {
+  min-width: 860px;
+}
+
+
 .data-table tbody tr {
   cursor: pointer;
   transition: background 0.15s ease;
@@ -1702,6 +1763,7 @@ a {
 
 .data-pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
@@ -1717,9 +1779,22 @@ a {
 }
 
 
+.data-pagination button {
+  width: auto;
+  min-width: 108px;
+}
+
+
+.data-pagination span {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+
 .data-detail {
   align-self: start;
   min-height: 310px;
+  overflow-wrap: break-word;
 }
 
 
@@ -1736,6 +1811,7 @@ a {
   margin: 0 0 22px;
   font-size: 23px;
   line-height: 1.15;
+  overflow-wrap: break-word;
 }
 
 
@@ -1770,9 +1846,9 @@ a {
 .data-detail-field dd {
   margin: 0;
   color: var(--text);
-  font-size: 13px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
 }
 
 
@@ -1781,7 +1857,7 @@ a {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 
@@ -2021,6 +2097,19 @@ body {
 
 /* Mobile */
 
+@media (max-width: 1100px) {
+
+  .data-layout {
+    grid-template-columns: 1fr;
+  }
+
+
+  .data-detail {
+    min-height: 0;
+  }
+
+}
+
 @media (max-width: 900px) {
 
   .header {
@@ -2143,6 +2232,8 @@ body {
     height: auto;
     max-height: none;
     margin-top: 0;
+    min-height: 0;
+    padding: 24px;
   }
 
 
@@ -2161,6 +2252,17 @@ body {
   }
 
 
+  .data-results,
+  .data-detail {
+    padding: 18px;
+  }
+
+
+  .data-table-wrap {
+    border-radius: 12px;
+  }
+
+
   .research-grid {
     grid-template-columns: 1fr;
   }
@@ -2173,6 +2275,92 @@ body {
 
   .footer {
     flex-direction: column;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .section {
+    width: 88%;
+    padding: 84px 0;
+  }
+
+
+  .section-heading h2 {
+    font-size: clamp(32px, 9vw, 48px);
+  }
+
+
+  .geo-map-summary {
+    grid-template-columns: 1fr;
+  }
+
+
+  .geo-map-stat {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+
+  #geo-map-canvas {
+    height: 420px;
+  }
+
+
+  .geo-panel {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+
+  .geo-panel h3 {
+    font-size: 22px;
+  }
+
+
+  .data-search-panel,
+  .data-filter-panel {
+    padding: 15px;
+  }
+
+
+  .data-table {
+    min-width: 760px;
+  }
+
+
+  .data-table-countries {
+    min-width: 500px;
+  }
+
+
+  .data-table-metrics,
+  .data-table-sources {
+    min-width: 800px;
+  }
+
+
+  .data-table th,
+  .data-table td {
+    padding: 12px;
+  }
+
+
+  .data-pagination {
+    align-items: stretch;
+  }
+
+
+  .data-pagination button {
+    flex: 1 1 120px;
+  }
+
+
+  .data-pagination span {
+    flex: 1 1 100%;
+    order: -1;
   }
 
 }
