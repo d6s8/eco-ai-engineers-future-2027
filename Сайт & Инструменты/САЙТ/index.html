@@ -11,7 +11,7 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   >
-  <link rel="stylesheet" href="style.css?v=20261029-1">
+  <link rel="stylesheet" href="style.css?v=20261101-2">
 </head>
 
 <body>
@@ -211,7 +211,8 @@
 
         <p class="geo-description">
           Нажми на точку, чтобы увидеть краткую карточку дата-центра.
-          Показатели отображаются только там, где они опубликованы в источнике.
+          Показатели отображаются только там, где они опубликованы в источнике
+          или явно помечены как сценарные.
         </p>
       </div>
 
@@ -219,11 +220,15 @@
         <div class="geo-workspace">
           <div class="geo-map-summary" id="geo-map-summary" aria-live="polite">
             <div class="geo-map-stat">
-              <span>GPS-точки ATLAS</span>
+              <span>Точки ATLAS</span>
               <strong>—</strong>
             </div>
             <div class="geo-map-stat">
-              <span>С опубликованными метриками</span>
+              <span>Площадки исследования</span>
+              <strong>—</strong>
+            </div>
+            <div class="geo-map-stat">
+              <span>С показателями</span>
               <strong>—</strong>
             </div>
           </div>
@@ -231,8 +236,9 @@
           <div id="geo-map-canvas" aria-label="Карта дата-центров с интерактивными маркерами"></div>
 
           <p class="geo-disclaimer">
-            Карта показывает опубликованные GPS-точки ATLAS. Координаты могут быть округлены
-            до района или города; пропуски экологических показателей не заменяются нулевыми значениями.
+            Карта объединяет GPS-точки ATLAS и отдельные документированные площадки из
+            исследовательского реестра. Координаты могут быть округлены до района или города;
+            пропуски экологических показателей не заменяются нулевыми значениями.
           </p>
         </div>
 
@@ -257,81 +263,66 @@
 
       <div class="data-summary" id="data-summary" aria-live="polite"></div>
 
-      <div class="data-toolbar" aria-label="Фильтры данных">
-        <label>
-          Набор данных
-          <select id="data-kind">
-            <option value="dataCenters">Дата-центры</option>
-            <option value="countries">Страны</option>
-            <option value="metrics">Метрики</option>
-            <option value="sources">Источники</option>
-          </select>
-        </label>
+      <div class="data-controls" aria-label="Поиск и фильтры данных">
+        <div class="data-search-panel">
+          <label class="data-search-control" for="data-search">
+            <span>Поиск по таблице</span>
+            <input id="data-search" type="search" placeholder="Компания, дата-центр, страна или город">
+          </label>
+        </div>
 
-        <label>
-          Поиск
-          <input id="data-search" type="search" placeholder="Компания, страна или название">
-        </label>
+        <div class="data-filter-panel">
+          <div class="data-filter-row">
+            <label>
+              Набор данных
+              <select id="data-kind">
+                <option value="dataCenters">Дата-центры</option>
+                <option value="countries">Страны</option>
+                <option value="metrics">Метрики</option>
+                <option value="sources">Источники</option>
+              </select>
+            </label>
 
-        <label>
-          Сортировка
-          <select id="data-sort">
-            <option value="default">По умолчанию</option>
-            <option value="name-asc">По названию, А–Я</option>
-            <option value="name-desc">По названию, Я–А</option>
-          </select>
-        </label>
+            <label id="data-country-control">
+              Страна
+              <select id="data-country">
+                <option value="">Все страны</option>
+              </select>
+            </label>
 
-        <label id="data-country-control">
-          Страна
-          <select id="data-country">
-            <option value="">Все страны</option>
-          </select>
-        </label>
+            <label id="data-region-control">
+              Регион
+              <select id="data-region">
+                <option value="">Все регионы</option>
+              </select>
+            </label>
 
-        <label id="data-status-control">
-          Статус
-          <select id="data-status">
-            <option value="">Все статусы</option>
-          </select>
-        </label>
+            <label id="data-status-control">
+              Статус
+              <select id="data-status">
+                <option value="">Все статусы</option>
+              </select>
+            </label>
 
-        <label id="data-source-control" hidden>
-          Источник
-          <select id="data-source">
-            <option value="">Все источники</option>
-          </select>
-        </label>
+            <label id="data-source-control">
+              Источник
+              <select id="data-source">
+                <option value="">Все источники</option>
+              </select>
+            </label>
 
-        <label id="data-region-control" hidden>
-          Регион
-          <select id="data-region">
-            <option value="">Все регионы</option>
-          </select>
-        </label>
+            <label>
+              Сортировка
+              <select id="data-sort">
+                <option value="default">По умолчанию</option>
+                <option value="name-asc">По названию, А–Я</option>
+                <option value="name-desc">По названию, Я–А</option>
+              </select>
+            </label>
 
-        <label id="data-metric-control" hidden>
-          Метрика
-          <select id="data-metric">
-            <option value="">Все метрики</option>
-          </select>
-        </label>
-
-        <label id="data-year-control" hidden>
-          Год
-          <select id="data-year">
-            <option value="">Все годы</option>
-          </select>
-        </label>
-
-        <label id="data-type-control" hidden>
-          Тип источника
-          <select id="data-type">
-            <option value="">Все типы источника</option>
-          </select>
-        </label>
-
-        <button class="data-reset" id="data-reset" type="button">Сбросить</button>
+            <button class="data-reset" id="data-reset" type="button">Сбросить фильтры</button>
+          </div>
+        </div>
       </div>
 
       <div class="data-layout">
@@ -525,13 +516,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="site-data.js?v=20261022-1"></script>
-  <script src="research-data.js?v=20261009-2"></script>
+  <script src="site-data.js?v=20261101-2"></script>
+  <script src="research-data.js?v=20261101-2"></script>
   <script src="theme.js?v=20261008-2"></script>
   <script src="script.js?v=20261008-2"></script>
   <script src="d3-map.js?v=20261009-7"></script>
-  <script src="project-data.js?v=20261022-1"></script>
-  <script src="geo-map.js?v=20261029-2"></script>
+  <script src="project-data.js?v=20261101-4"></script>
+  <script src="geo-map.js?v=20261101-2"></script>
 
 </body>
 </html>

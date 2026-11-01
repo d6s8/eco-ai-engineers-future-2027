@@ -17,33 +17,19 @@
       label: document.getElementById("data-region-control"),
       select: document.getElementById("data-region"),
       empty: "Все регионы"
-    },
-    metric: {
-      label: document.getElementById("data-metric-control"),
-      select: document.getElementById("data-metric"),
-      empty: "Все метрики"
-    },
-    year: {
-      label: document.getElementById("data-year-control"),
-      select: document.getElementById("data-year"),
-      empty: "Все годы"
-    },
-    sourceType: {
-      label: document.getElementById("data-type-control"),
-      select: document.getElementById("data-type"),
-      empty: "Все типы источника"
     }
   };
   const resetButton = document.getElementById("data-reset");
   const summary = document.getElementById("data-summary");
   const message = document.getElementById("data-message");
+  const table = document.querySelector(".data-table");
   const tableHead = document.getElementById("data-table-head");
   const tableBody = document.getElementById("data-table-body");
   const pagination = document.getElementById("data-pagination");
   const detail = document.getElementById("data-detail");
   const disclaimer = document.getElementById("data-disclaimer");
 
-  if (!kindControl || !searchControl || !sortControl || !countryControl || !statusControl || !summary || !tableBody || !detail) {
+  if (!kindControl || !searchControl || !sortControl || !countryControl || !statusControl || !summary || !table || !tableHead || !tableBody || !detail) {
     return;
   }
 
@@ -74,7 +60,7 @@
         ["city", "Город"],
         ["status", "Статус"]
       ],
-      searchFields: ["company", "name", "country", "region", "city", "address"],
+      searchFields: ["company", "name", "country", "countryLabel", "region", "city", "address"],
       countryField: "country",
       statusField: "status",
       searchPlaceholder: "Компания, страна или название",
@@ -116,9 +102,7 @@
       statusField: "dataStatus",
       searchPlaceholder: "Метрика, источник или документ",
       extraFilters: [
-        ["source", "sourceName", "Источник"],
-        ["metric", "name", "Метрика"],
-        ["year", "year", "Год"]
+        ["source", "sourceName", "Источник"]
       ],
       statusLabels: {
         extracted: "Извлечено",
@@ -136,7 +120,7 @@
       countryField: null,
       statusField: null,
       searchPlaceholder: "Название или документ",
-      extraFilters: [["sourceType", "type", "Тип источника"]],
+      extraFilters: [],
       statusLabels: {}
     }
   };
@@ -154,6 +138,165 @@
     estimated: "Оценочное"
   };
 
+  const regionLabels = {
+    AL: "Алабама",
+    AK: "Аляска",
+    AZ: "Аризона",
+    AR: "Арканзас",
+    CA: "Калифорния",
+    CO: "Колорадо",
+    CT: "Коннектикут",
+    DE: "Делавэр",
+    FL: "Флорида",
+    GA: "Джорджия",
+    HI: "Гавайи",
+    ID: "Айдахо",
+    IL: "Иллинойс",
+    IN: "Индиана",
+    IA: "Айова",
+    KS: "Канзас",
+    KY: "Кентукки",
+    LA: "Луизиана",
+    ME: "Мэн",
+    MD: "Мэриленд",
+    MA: "Массачусетс",
+    MI: "Мичиган",
+    MN: "Миннесота",
+    MS: "Миссисипи",
+    MO: "Миссури",
+    MT: "Монтана",
+    NE: "Небраска",
+    NV: "Невада",
+    NH: "Нью-Гэмпшир",
+    NJ: "Нью-Джерси",
+    NM: "Нью-Мексико",
+    NY: "Нью-Йорк",
+    NC: "Северная Каролина",
+    ND: "Северная Дакота",
+    OH: "Огайо",
+    OK: "Оклахома",
+    OR: "Орегон",
+    PA: "Пенсильвания",
+    RI: "Род-Айленд",
+    SC: "Южная Каролина",
+    SD: "Южная Дакота",
+    TN: "Теннесси",
+    TX: "Техас",
+    UT: "Юта",
+    VT: "Вермонт",
+    VA: "Вирджиния",
+    WA: "Вашингтон",
+    WV: "Западная Вирджиния",
+    WI: "Висконсин",
+    WY: "Вайоминг",
+    Alabama: "Алабама",
+    Alaska: "Аляска",
+    Arizona: "Аризона",
+    Arkansas: "Арканзас",
+    California: "Калифорния",
+    Colorado: "Колорадо",
+    Connecticut: "Коннектикут",
+    Delaware: "Делавэр",
+    Florida: "Флорида",
+    Georgia: "Джорджия",
+    Hawaii: "Гавайи",
+    Idaho: "Айдахо",
+    Illinois: "Иллинойс",
+    Indiana: "Индиана",
+    Iowa: "Айова",
+    Kansas: "Канзас",
+    Kentucky: "Кентукки",
+    Louisiana: "Луизиана",
+    Maine: "Мэн",
+    Maryland: "Мэриленд",
+    Massachusetts: "Массачусетс",
+    Michigan: "Мичиган",
+    Minnesota: "Миннесота",
+    Mississippi: "Миссисипи",
+    Missouri: "Миссури",
+    Montana: "Монтана",
+    Nebraska: "Небраска",
+    Nevada: "Невада",
+    "New Hampshire": "Нью-Гэмпшир",
+    "New Jersey": "Нью-Джерси",
+    "New Mexico": "Нью-Мексико",
+    "New York": "Нью-Йорк",
+    "North Carolina": "Северная Каролина",
+    "North Dakota": "Северная Дакота",
+    Ohio: "Огайо",
+    Oklahoma: "Оклахома",
+    Oregon: "Орегон",
+    Pennsylvania: "Пенсильвания",
+    "Rhode Island": "Род-Айленд",
+    "South Carolina": "Южная Каролина",
+    "South Dakota": "Южная Дакота",
+    Tennessee: "Теннесси",
+    Texas: "Техас",
+    Utah: "Юта",
+    Vermont: "Вермонт",
+    Virginia: "Вирджиния",
+    Washington: "Вашингтон",
+    "West Virginia": "Западная Вирджиния",
+    Wisconsin: "Висконсин",
+    Wyoming: "Вайоминг",
+    "District of Columbia": "Округ Колумбия",
+    Alberta: "Альберта",
+    "British Columbia": "Британская Колумбия",
+    Manitoba: "Манитоба",
+    "New Brunswick": "Нью-Брансуик",
+    "Newfoundland and Labrador": "Ньюфаундленд и Лабрадор",
+    "Nova Scotia": "Новая Шотландия",
+    Ontario: "Онтарио",
+    "Prince Edward Island": "Остров Принца Эдуарда",
+    Quebec: "Квебек",
+    Saskatchewan: "Саскачеван",
+    Abilene: "Абилин",
+    Akron: "Акрон",
+    Albany: "Олбани",
+    Allentown: "Аллентаун",
+    Alpharetta: "Альфаретта",
+    Amarillo: "Амарилло",
+    Andrews: "Эндрюс",
+    "Ann Arbor": "Анн-Арбор",
+    Ashburn: "Эшберн",
+    Ashland: "Эшленд",
+    Atlanta: "Атланта",
+    "Atlantic City": "Атлантик-Сити",
+    Augusta: "Огаста",
+    Aurora: "Аврора",
+    Austin: "Остин",
+    Bakersfield: "Бейкерсфилд",
+    Baltimore: "Балтимор",
+    Bellevue: "Белвью",
+    Bellingham: "Беллингем"
+  };
+
+  const transliteration = {
+    a: "а", b: "б", c: "к", d: "д", e: "е", f: "ф", g: "г", h: "х",
+    i: "и", j: "дж", k: "к", l: "л", m: "м", n: "н", o: "о", p: "п",
+    q: "к", r: "р", s: "с", t: "т", u: "у", v: "в", w: "в", x: "кс",
+    y: "й", z: "з"
+  };
+
+  function transliterateRegion(value) {
+    const transliterated = String(value).replace(/[A-Za-z]+/g, (word) => {
+      let result = word.toLowerCase();
+      [["tion", "шн"], ["sion", "жн"], ["tch", "ч"], ["sch", "ш"], ["sh", "ш"],
+        ["ch", "ч"], ["th", "т"], ["ph", "ф"], ["qu", "кв"], ["ck", "к"],
+        ["oo", "у"], ["ee", "и"], ["ea", "и"], ["ou", "у"], ["ow", "оу"]]
+        .forEach(([from, to]) => {
+          result = result.replaceAll(from, to);
+        });
+      return [...result].map((character) => transliteration[character] || character).join("");
+    });
+    return transliterated.replace(/(^|[\s-])([а-яё])/g, (match, prefix, letter) => prefix + letter.toUpperCase());
+  }
+
+  function regionLabelFor(value) {
+    const rawValue = String(value);
+    return regionLabels[rawValue] || transliterateRegion(rawValue);
+  }
+
   function valueOrFallback(value) {
     return value === null || value === undefined || value === "" ? "Не указано" : String(value);
   }
@@ -170,10 +313,24 @@
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("ru-RU");
   }
 
+  function searchValuesFor(record, field) {
+    const values = [record[field]];
+    if (field === "country") {
+      values.push(record.countryLabel);
+    }
+    if (field === "region" && record.region) {
+      values.push(regionLabelFor(record.region));
+    }
+    return values;
+  }
+
   function formatValue(record, key) {
     const value = record[key];
     if (key === "country") {
       return valueOrFallback(record.countryLabel);
+    }
+    if (key === "region") {
+      return regionLabelFor(value);
     }
     if (key === "status" || key === "dataStatus" || key === "scope" || key === "valueType") {
       return labelFor(value, configurations[state.kind].statusLabels);
@@ -224,12 +381,17 @@
     const search = state.search.trim().toLocaleLowerCase("ru-RU");
     const records = currentRecords().filter((record) => {
       const matchesSearch = !search || configuration.searchFields.some((field) =>
-        valueOrFallback(record[field]).toLocaleLowerCase("ru-RU").includes(search)
+        searchValuesFor(record, field).some((value) =>
+          valueOrFallback(value).toLocaleLowerCase("ru-RU").includes(search)
+        )
       );
       const matchesCountry = !state.country || record[configuration.countryField] === state.country;
       const matchesStatus = !state.status || record[configuration.statusField] === state.status;
       const matchesExtra = configuration.extraFilters.every(([key, field]) => {
         const selected = state.extra[key];
+        if (key === "region") {
+          return !selected || regionLabelFor(record[field]) === regionLabelFor(selected);
+        }
         return !selected || String(record[field]) === String(selected);
       });
       return matchesSearch && matchesCountry && matchesStatus && matchesExtra;
@@ -245,10 +407,10 @@
     });
   }
 
-  function setOptions(select, values, defaultText, dictionary = {}) {
+  function setOptions(select, values, defaultText, dictionary = {}, formatter = null) {
     select.replaceChildren(createElement("option", defaultText));
     values.forEach((value) => {
-      const option = createElement("option", labelFor(value, dictionary));
+      const option = createElement("option", formatter ? formatter(value) : labelFor(value, dictionary));
       option.value = value;
       select.appendChild(option);
     });
@@ -268,8 +430,8 @@
       ? [...new Set(records.map((record) => record[configuration.statusField]).filter(Boolean))].sort()
       : [];
 
-    countryLabel.hidden = !configuration.countryField || countries.length === 0;
-    statusLabel.hidden = !configuration.statusField || statuses.length === 0;
+    countryLabel.hidden = !configuration.countryField || countries.length < 2;
+    statusLabel.hidden = !configuration.statusField || statuses.length < 2;
     setOptions(countryControl, countries, "Все страны", Object.fromEntries(countryNames));
     setOptions(statusControl, statuses, "Все статусы", configuration.statusLabels);
     countryControl.value = countries.includes(state.country) ? state.country : "";
@@ -292,10 +454,18 @@
       }
       const [, field] = filter;
       const values = [...new Set(records.map((record) => record[field]).filter((value) => value !== null && value !== undefined && value !== ""))]
-        .sort((a, b) => String(a).localeCompare(String(b), "ru", { numeric: true }));
+        .sort((a, b) => key === "region"
+          ? regionLabelFor(a).localeCompare(regionLabelFor(b), "ru", { numeric: true })
+          : String(a).localeCompare(String(b), "ru", { numeric: true }));
+      const displayValues = key === "region"
+        ? values.filter((value, index) => values.findIndex((candidate) => regionLabelFor(candidate) === regionLabelFor(value)) === index)
+        : values;
       control.label.hidden = values.length < 2;
-      setOptions(control.select, values, control.empty);
-      control.select.value = values.map(String).includes(String(state.extra[key])) ? state.extra[key] : "";
+      setOptions(control.select, displayValues, control.empty, {}, key === "region" ? regionLabelFor : null);
+      const selectedRegionLabel = key === "region" && state.extra[key] ? regionLabelFor(state.extra[key]) : "";
+      control.select.value = key === "region"
+        ? displayValues.find((value) => regionLabelFor(value) === selectedRegionLabel) || ""
+        : displayValues.map(String).includes(String(state.extra[key])) ? state.extra[key] : "";
       state.extra[key] = control.select.value;
     });
     Object.keys(state.extra).forEach((key) => {
@@ -415,7 +585,7 @@
       appendDetailField(fields, "Компания", record.company);
       appendDetailField(fields, "Источник данных", record.sourceName);
       appendDetailField(fields, "Страна", record.countryLabel);
-      appendDetailField(fields, "Регион / город", [record.region, record.city].filter(Boolean).join(" / "));
+      appendDetailField(fields, "Регион / город", [record.region && regionLabelFor(record.region), record.city].filter(Boolean).join(" / "));
       appendDetailField(fields, "Адрес", record.address);
       appendDetailField(fields, "Статус", labelFor(record.status, configurations.dataCenters.statusLabels));
       appendDetailField(fields, "Дата получения", formatDate(record.retrievedAt));

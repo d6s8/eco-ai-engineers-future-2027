@@ -1109,7 +1109,7 @@ a {
 
 .geo-map-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -1424,16 +1424,27 @@ a {
 }
 
 
-.data-toolbar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px;
-  align-items: end;
+.data-controls {
   margin-top: 18px;
 }
 
 
-.data-toolbar label {
+.data-search-panel,
+.data-filter-panel {
+  padding: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+
+.data-filter-panel {
+  margin-top: 10px;
+}
+
+
+.data-search-control,
+.data-filter-row label {
   display: grid;
   min-width: 0;
   gap: 7px;
@@ -1445,8 +1456,21 @@ a {
 }
 
 
-.data-toolbar input,
-.data-toolbar select,
+.data-search-control span {
+  color: var(--text);
+}
+
+
+.data-filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+
+.data-search-control input,
+.data-filter-row select,
 .data-reset,
 .data-pagination button {
   width: 100%;
@@ -1462,8 +1486,8 @@ a {
 }
 
 
-.data-toolbar input:focus,
-.data-toolbar select:focus,
+.data-search-control input:focus,
+.data-filter-row select:focus,
 .data-reset:focus-visible,
 .data-pagination button:focus-visible,
 .data-table tr:focus-visible {
@@ -2046,7 +2070,7 @@ a {
   }
 
 
-  .data-toolbar {
+  .data-filter-row {
     grid-template-columns: 1fr;
   }
 

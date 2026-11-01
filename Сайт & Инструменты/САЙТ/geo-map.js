@@ -22,6 +22,7 @@
   const markersLayer = L.layerGroup().addTo(map);
   const markersById = new Map();
   const researchByKey = new Map();
+  const researchById = new Map();
   const catalogByKey = new Map();
   const metricsByDataCenterId = new Map();
   let selectedId = null;
@@ -51,10 +52,13 @@
     .map(normalizeKeyPart)
     .join("|");
 
-  (researchData?.dataCenters || []).forEach((site) => researchByKey.set(
-    [site.name, site.operator, site.country].map(normalizeKeyPart).join("|"),
-    site
-  ));
+  (researchData?.dataCenters || []).forEach((site) => {
+    researchById.set(site.id, site);
+    researchByKey.set(
+      [site.name, site.operator, site.country].map(normalizeKeyPart).join("|"),
+      site
+    );
+  });
   (projectData?.dataCenters || []).forEach((site) => catalogByKey.set(recordKey({
     name: site.name,
     company: site.company,
@@ -70,7 +74,7 @@
   function getContext(feature) {
     const properties = feature.properties || {};
     const key = recordKey(properties);
-    const research = researchByKey.get(key) || null;
+    const research = researchById.get(properties.researchId) || researchByKey.get(key) || null;
     const catalog = catalogByKey.get(key) || null;
     return {
       properties,
@@ -137,16 +141,52 @@
 
   function renderSummary(features) {
     if (!summary) return;
+    const atlasSites = features.filter((feature) => feature.properties?.sourceType !== "research").length;
+    const researchSites = features.filter((feature) => feature.properties?.sourceType === "research").length;
     const metricSites = features.filter((feature) => getMetrics(getContext(feature)).length > 0).length;
     summary.innerHTML = `
       <div class="geo-map-stat">
-        <span>GPS-точки ATLAS</span>
-        <strong>${features.length.toLocaleString("ru-RU")}</strong>
+        <span>Точки ATLAS</span>
+        <strong>${atlasSites.toLocaleString("ru-RU")}</strong>
       </div>
       <div class="geo-map-stat">
-        <span>С доступными метриками</span>
+        <span>Площадки исследования</span>
+        <strong>${researchSites.toLocaleString("ru-RU")}</strong>
+      </div>
+      <div class="geo-map-stat">
+        <span>С показателями</span>
         <strong>${metricSites.toLocaleString("ru-RU")}</strong>
       </div>`;
+  }
+
+  function createResearchFeatures(atlasFeatures) {
+    const matchedResearchIds = new Set(
+      atlasFeatures
+        .map((feature) => getContext(feature).research?.id)
+        .filter(Boolean)
+    );
+    return (researchData?.dataCenters || [])
+      .filter((site) => (
+        Array.isArray(site.coordinates) &&
+        site.coordinates.length >= 2 &&
+        !matchedResearchIds.has(site.id)
+      ))
+      .map((site) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [site.coordinates[1], site.coordinates[0]]
+        },
+        properties: {
+          name: site.name,
+          company: site.operator,
+          country: site.country,
+          city: site.place,
+          address: site.place,
+          researchId: site.id,
+          sourceType: "research"
+        }
+      }));
   }
 
   function renderPanel(feature) {
@@ -221,10 +261,11 @@
       const response = await fetch("datacenters.geojson");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const geoJson = await response.json();
-      const features = (geoJson.features || []).filter((feature) => (
+      const atlasFeatures = (geoJson.features || []).filter((feature) => (
         feature.geometry?.type === "Point" && Array.isArray(feature.geometry.coordinates)
       ));
-      if (!features.length) throw new Error("GeoJSON не содержит точек");
+      const features = atlasFeatures.concat(createResearchFeatures(atlasFeatures));
+      if (!features.length) throw new Error("Карта не содержит точек");
 
       selectedId = featureId(features[0], 0);
       renderSummary(features);
