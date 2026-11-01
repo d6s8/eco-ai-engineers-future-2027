@@ -28,13 +28,53 @@
   let selectedId = null;
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
-  L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  const tileProviders = [
     {
-      maxZoom: 19,
-      attribution: "&copy; Участники OpenStreetMap"
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+      options: {
+        maxZoom: 19,
+        attribution: "Tiles &copy; Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP and the GIS User Community"
+      }
+    },
+    {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      options: {
+        maxZoom: 19,
+        attribution: "&copy; Участники OpenStreetMap"
+      }
     }
-  ).addTo(map);
+  ];
+  let activeTileLayer = null;
+  let tileProviderIndex = -1;
+  let tileErrorCount = 0;
+
+  function showTileNotice(text) {
+    const notice = document.createElement("div");
+    notice.className = "geo-map-tile-notice";
+    notice.textContent = text;
+    mapElement.appendChild(notice);
+  }
+
+  function attachTileProvider(index) {
+    const provider = tileProviders[index];
+    if (!provider) {
+      showTileNotice("Картографический фон недоступен. Точки данных остаются доступны.");
+      return;
+    }
+    tileProviderIndex = index;
+    tileErrorCount = 0;
+    const layer = L.tileLayer(provider.url, provider.options);
+    layer.on("tileerror", () => {
+      tileErrorCount += 1;
+      if (tileErrorCount < 2 || layer !== activeTileLayer) return;
+      map.removeLayer(layer);
+      activeTileLayer = null;
+      attachTileProvider(tileProviderIndex + 1);
+    });
+    activeTileLayer = layer.addTo(map);
+  }
+
+  attachTileProvider(0);
 
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -256,29 +296,51 @@
     });
   }
 
+  function renderFeatures(features) {
+    if (!features.length) throw new Error("Карта не содержит точек");
+
+    selectedId = featureId(features[0], 0);
+    renderSummary(features);
+    renderMarkers(features);
+    renderPanel(features[0]);
+    const bounds = L.latLngBounds(features.map((feature) => [
+      feature.geometry.coordinates[1],
+      feature.geometry.coordinates[0]
+    ]));
+    map.fitBounds(bounds, { padding: [24, 24], maxZoom: 4 });
+  }
+
   async function loadMapData() {
     try {
-      const response = await fetch("datacenters.geojson");
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const geoJson = await response.json();
+      let geoJson = window.geoJsonData;
+      if (!geoJson) {
+        if (window.location.protocol === "file:") {
+          throw new Error("Локальный слой карты не найден");
+        }
+        const dataUrl = new URL("datacenters.geojson", document.baseURI);
+        const response = await fetch(dataUrl, { cache: "no-cache" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        geoJson = await response.json();
+      }
       const atlasFeatures = (geoJson.features || []).filter((feature) => (
         feature.geometry?.type === "Point" && Array.isArray(feature.geometry.coordinates)
       ));
       const features = atlasFeatures.concat(createResearchFeatures(atlasFeatures));
-      if (!features.length) throw new Error("Карта не содержит точек");
-
-      selectedId = featureId(features[0], 0);
-      renderSummary(features);
-      renderMarkers(features);
-      renderPanel(features[0]);
-      const bounds = L.latLngBounds(features.map((feature) => [
-        feature.geometry.coordinates[1],
-        feature.geometry.coordinates[0]
-      ]));
-      map.fitBounds(bounds, { padding: [24, 24], maxZoom: 4 });
+      renderFeatures(features);
     } catch (error) {
-      panel.innerHTML = `<p>Не удалось загрузить полный слой ATLAS: ${escapeHtml(error.message)}.</p>`;
-      if (summary) summary.innerHTML = "<div class=\"geo-map-stat\"><span>Статус слоя</span><strong>Ошибка загрузки</strong></div>";
+      if (window.location.protocol === "file:") {
+        const researchFeatures = createResearchFeatures([]);
+        if (researchFeatures.length) {
+          renderFeatures(researchFeatures);
+        }
+      }
+      const message = window.location.protocol === "file:"
+        ? "Локальный слой ATLAS не найден. Для полного слоя запустите экспорт сайта или откройте его через HTTP-сервер."
+        : `Слой ATLAS временно недоступен (${error.message}). Проверьте, что datacenters.geojson опубликован рядом с index.html.`;
+      panel.innerHTML = `<p>${escapeHtml(message)}</p>`;
+      if (summary && window.location.protocol !== "file:") {
+        summary.innerHTML = "<div class=\"geo-map-stat\"><span>Статус слоя</span><strong>Ошибка загрузки</strong></div>";
+      }
       console.error("GeoJSON map loading failed", error);
     }
   }

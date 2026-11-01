@@ -113,3 +113,15 @@ def export_site_data(settings: Settings, output_path: Path | None = None) -> Pat
     serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).replace("<", "\\u003c")
     target.write_text("window.projectData = " + serialized + ";\n", encoding="utf-8")
     return target
+
+
+def export_geo_data(settings: Settings, output_path: Path | None = None) -> Path | None:
+    """Export the coordinate layer as a browser-safe JavaScript global."""
+    source = settings.site_dir / "datacenters.geojson"
+    if not source.exists():
+        return None
+    target = output_path or settings.site_dir / "geo-data.js"
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).replace("<", "\\u003c")
+    target.write_text("window.geoJsonData = " + serialized + ";\n", encoding="utf-8")
+    return target

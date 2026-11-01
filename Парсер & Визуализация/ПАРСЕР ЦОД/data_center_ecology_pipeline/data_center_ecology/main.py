@@ -11,7 +11,7 @@ from .config import Settings
 from .models import SourceRecord
 from .parsers.pdf_parser import extract_pdf_metrics
 from .sources.atlas import AtlasCsvAdapter, ATLAS_CSV_URL, ATLAS_SOURCE_URL
-from .site_export import export_site_data
+from .site_export import export_geo_data, export_site_data
 from .storage import build_summary, sanitize_country_values, save_datacenters, save_metrics, save_sources, save_russian_copy
 from .validation import validate_saved_data
 
@@ -120,6 +120,9 @@ def main() -> None:
             save_russian_copy(metrics, settings.normalized_dir / "метрики_история.csv")
         output_path = export_site_data(settings, args.output)
         logging.getLogger(__name__).info("Exported website data to %s", output_path)
+        geo_path = export_geo_data(settings)
+        if geo_path:
+            logging.getLogger(__name__).info("Exported website map data to %s", geo_path)
     elif args.command == "sanitize":
         datacenters = sanitize_country_values(settings.normalized_dir / "datacenters.csv")
         metrics = sanitize_country_values(settings.normalized_dir / "metrics_history.csv")
