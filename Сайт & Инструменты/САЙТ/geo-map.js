@@ -4,6 +4,8 @@
   const mapElement = document.getElementById("geo-map-canvas");
   const panel = document.getElementById("geo-map-panel");
   const summary = document.getElementById("geo-map-summary");
+  const countryFilter = document.getElementById("geo-map-country-filter");
+  const filterReset = document.getElementById("geo-map-filter-reset");
 
   if (!mapElement || !panel || !window.L) {
     if (panel) {
@@ -26,6 +28,7 @@
   const catalogByKey = new Map();
   const metricsByDataCenterId = new Map();
   let selectedId = null;
+  let allFeatures = [];
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
   const tileProviders = [
@@ -159,6 +162,13 @@
         if (source) sourceItems.push(source);
       });
     }
+    if (!sourceItems.length && context.catalog?.sourceUrl) {
+      sourceItems.push({
+        short: context.catalog.sourceName || "Источник каталога",
+        url: context.catalog.sourceUrl,
+        note: context.catalog.notes || "Запись каталога дата-центров."
+      });
+    }
     if (!sourceItems.length) {
       sourceItems.push({
         short: "ATLAS / Global Data Center Map",
@@ -194,7 +204,7 @@
         <strong>${researchSites.toLocaleString("ru-RU")}</strong>
       </div>
       <div class="geo-map-stat">
-        <span>С показателями</span>
+        <span>С доступными сведениями</span>
         <strong>${metricSites.toLocaleString("ru-RU")}</strong>
       </div>`;
   }
@@ -233,9 +243,12 @@
     const context = getContext(feature);
     const properties = context.properties;
     const metrics = getMetrics(context);
-    const place = [properties.city, properties.state, properties.country]
-      .filter(Boolean)
-      .join(", ");
+    const catalog = context.catalog;
+    const place = [
+      properties.city || catalog?.city,
+      properties.state || catalog?.region,
+      properties.country || catalog?.countryLabel || catalog?.country
+    ].filter(Boolean).join(", ");
     const metricMarkup = metrics.length
       ? `<dl class="geo-details">${metrics.map((metric) => (
           `<div><dt>${escapeHtml(metric.label)}</dt><dd>${escapeHtml(metric.value)} — ${escapeHtml(metric.note)}</dd></div>`
@@ -245,10 +258,12 @@
     panel.innerHTML =
       `<p class="geo-panel-kicker">${metrics.length ? "Есть доступные метрики" : "Только географическая запись"}</p>` +
       `<h3>${escapeHtml(properties.name || "Дата-центр без названия")}</h3>` +
-      `<p class="geo-panel-place">${escapeHtml(properties.company)}${place ? ` · ${escapeHtml(place)}` : ""}</p>` +
+      `<p class="geo-panel-place">${escapeHtml(properties.company || catalog?.company || "Оператор не указан")}${place ? ` · ${escapeHtml(place)}` : ""}</p>` +
       metricMarkup +
       `<dl class="geo-details geo-location-details">` +
-        `<div><dt>Адрес</dt><dd>${escapeHtml(properties.address || "не опубликован")}</dd></div>` +
+        `<div><dt>Адрес</dt><dd>${escapeHtml(properties.address || catalog?.address || "не опубликован")}</dd></div>` +
+        (catalog?.region ? `<div><dt>Регион</dt><dd>${escapeHtml(catalog.region)}</dd></div>` : "") +
+        (catalog?.status ? `<div><dt>Статус</dt><dd>${escapeHtml(catalog.status)}</dd></div>` : "") +
         `<div><dt>Координаты</dt><dd>${escapeHtml(feature.geometry.coordinates[1].toFixed(4))}, ${escapeHtml(feature.geometry.coordinates[0].toFixed(4))}</dd></div>` +
       `</dl>` +
       `<h4>Источники</h4><ul class="source-list">${formatSources(context)}</ul>`;
@@ -297,10 +312,17 @@
   }
 
   function renderFeatures(features) {
-    if (!features.length) throw new Error("Карта не содержит точек");
+    renderSummary(features);
+    markersLayer.clearLayers();
+    markersById.clear();
+
+    if (!features.length) {
+      selectedId = null;
+      panel.innerHTML = '<p class="geo-panel-copy">Для выбранной страны в наборе нет точек с координатами.</p>';
+      return;
+    }
 
     selectedId = featureId(features[0], 0);
-    renderSummary(features);
     renderMarkers(features);
     renderPanel(features[0]);
     const bounds = L.latLngBounds(features.map((feature) => [
@@ -309,6 +331,34 @@
     ]));
     map.fitBounds(bounds, { padding: [24, 24], maxZoom: 4 });
   }
+
+  function populateCountryFilter(features) {
+    if (!countryFilter) return;
+    const countryLabels = new Map((projectData?.dataCenters || [])
+      .filter((site) => site.country && site.countryLabel)
+      .map((site) => [site.country, site.countryLabel]));
+    const countries = [...new Set(features
+      .map((feature) => feature.properties?.country)
+      .filter(Boolean))]
+      .sort((a, b) => (countryLabels.get(a) || a).localeCompare(countryLabels.get(b) || b, "ru"));
+    countryFilter.innerHTML = '<option value="">Все страны</option>' + countries.map((country) => (
+      `<option value="${escapeHtml(country)}">${escapeHtml(countryLabels.get(country) || country)}</option>`
+    )).join("");
+  }
+
+  function applyCountryFilter() {
+    const country = countryFilter?.value || "";
+    const visibleFeatures = country
+      ? allFeatures.filter((feature) => feature.properties?.country === country)
+      : allFeatures;
+    renderFeatures(visibleFeatures);
+  }
+
+  countryFilter?.addEventListener("change", applyCountryFilter);
+  filterReset?.addEventListener("click", () => {
+    if (countryFilter) countryFilter.value = "";
+    applyCountryFilter();
+  });
 
   async function loadMapData() {
     try {
@@ -325,8 +375,9 @@
       const atlasFeatures = (geoJson.features || []).filter((feature) => (
         feature.geometry?.type === "Point" && Array.isArray(feature.geometry.coordinates)
       ));
-      const features = atlasFeatures.concat(createResearchFeatures(atlasFeatures));
-      renderFeatures(features);
+      allFeatures = atlasFeatures.concat(createResearchFeatures(atlasFeatures));
+      populateCountryFilter(allFeatures);
+      renderFeatures(allFeatures);
     } catch (error) {
       if (window.location.protocol === "file:") {
         const researchFeatures = createResearchFeatures([]);
