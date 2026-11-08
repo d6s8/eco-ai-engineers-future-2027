@@ -145,6 +145,7 @@ window.researchData = {
   },
 
   assumptions: {
+    // Сценарные значения для учебных расчётов; не являются измерениями конкретных ЦОД.
     hoursPerYear: 8760,
     defaultUtilization: 0.5,
     defaultPue: 1.5,

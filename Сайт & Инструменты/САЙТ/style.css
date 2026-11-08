@@ -1115,7 +1115,7 @@ a {
 
 .geo-map-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -1175,38 +1175,54 @@ a {
 }
 
 
-.leaflet-container {
+.maplibregl-map {
   background: #1d2429;
   color: #eaf0f2;
   font-family: "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
 }
 
-
-.leaflet-tile-pane {
-  filter: grayscale(0.85) brightness(0.62) contrast(1.12) saturate(0.55);
-}
-
-
-.leaflet-control-zoom a,
-.leaflet-bar a {
+.maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid #3b464d !important;
+  border-radius: 10px !important;
   background: #252c31 !important;
-  border-bottom-color: #3b464d !important;
-  color: #edf1f2 !important;
 }
 
+.maplibregl-ctrl-group button {
+  background-color: #252c31 !important;
+}
 
-.leaflet-tooltip {
+.maplibregl-ctrl-group button + button {
+  border-top-color: #3b464d !important;
+}
+
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+
+.maplibregl-ctrl-attrib {
+  color: #edf1f2 !important;
+  background: rgba(25, 31, 35, 0.88) !important;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: #d5e6ef !important;
+}
+
+.maplibregl-popup-content {
   padding: 10px 12px;
   border: 1px solid #4c5a62;
   border-radius: 10px;
   background: rgba(25, 31, 35, 0.96);
   color: #edf1f2;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
-
-.leaflet-tooltip-top:before {
-  border-top-color: #4c5a62;
+.maplibregl-popup-tip {
+  border-top-color: rgba(25, 31, 35, 0.96) !important;
+  border-bottom-color: rgba(25, 31, 35, 0.96) !important;
 }
 
 

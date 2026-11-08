@@ -47,7 +47,7 @@ cd "Сайт & Инструменты\САЙТ"
 python -m http.server 8000
 ```
 
-Откройте `http://localhost:8000/`. Внешние библиотеки D3 и Leaflet подключаются через CDN.
+Откройте `http://localhost:8000/`. Внешние библиотеки D3 и MapLibre GL JS подключаются через CDN. Подложка геокарты — OpenStreetMap; соблюдайте атрибуцию и условия использования тайлов.
 
 ## Проверка
 
@@ -59,3 +59,5 @@ python -m pytest -q
 ```
 
 Источник каталога дата-центров: [ATLAS / Global Data Center Map](https://data-center-map.com/) и его [репозиторий с CSV](https://github.com/Ringmast4r/Global-Data-Center-Map). Требуется атрибуция автора набора данных.
+
+Геокарта использует [MapLibre GL JS](https://maplibre.org/) (BSD-3-Clause) и растровые тайлы [OpenStreetMap](https://www.openstreetmap.org/copyright). В каталоге больше записей, чем объектов с координатами; записи без координат не размещаются на карте автоматически.

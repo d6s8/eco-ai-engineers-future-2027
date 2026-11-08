@@ -6,12 +6,8 @@
 
   <title> ECOAI — Экологический след ИИ </title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  >
-  <link rel="stylesheet" href="style.css?v=20261109-1">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css?v=20261109-2">
 </head>
 
 <body>
@@ -222,7 +218,11 @@
         <div class="geo-workspace">
           <div class="geo-map-summary" id="geo-map-summary" aria-live="polite">
             <div class="geo-map-stat">
-              <span>Точки ATLAS</span>
+              <span>Записей в каталоге</span>
+              <strong>—</strong>
+            </div>
+            <div class="geo-map-stat">
+              <span>Точек на карте</span>
               <strong>—</strong>
             </div>
             <div class="geo-map-stat">
@@ -245,9 +245,9 @@
           <div id="geo-map-canvas" aria-label="Карта дата-центров с интерактивными маркерами"></div>
 
           <p class="geo-disclaimer">
-            Карта объединяет GPS-точки ATLAS и отдельные документированные площадки из
-            исследовательского реестра. Координаты могут быть округлены до района или города;
-            пропуски экологических показателей не заменяются нулевыми значениями.
+            Карта объединяет географические точки ATLAS и отдельные документированные площадки из
+            исследовательского реестра. Точность координат различается: часть точек может обозначать
+            город или регион, а не конкретное здание. Пропуски экологических показателей не заменяются нулями.
           </p>
         </div>
 
@@ -589,15 +589,14 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="site-data.js?v=20261101-2"></script>
   <script src="geo-data.js?v=20261101-1"></script>
-  <script src="research-data.js?v=20261101-2"></script>
+  <script src="research-data.js?v=20261109-2"></script>
   <script src="theme.js?v=20261008-2"></script>
   <script src="script.js?v=20261008-2"></script>
   <script src="d3-map.js?v=20261009-7"></script>
-  <script src="project-data.js?v=20261101-4"></script>
-  <script src="geo-map.js?v=20261109-1"></script>
+  <script src="project-data.js?v=20261109-2"></script>
+  <script type="module" src="geo-map.js?v=20261109-2"></script>
 
 </body>
 </html>
