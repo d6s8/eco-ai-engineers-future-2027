@@ -1,5 +1,6 @@
 (() => {
-  const data = window.projectData;
+  const exported = window.projectData;
+  const research = window.researchData;
   const kindControl = document.getElementById("data-kind");
   const searchControl = document.getElementById("data-search");
   const sortControl = document.getElementById("data-sort");
@@ -22,7 +23,7 @@
   const resetButton = document.getElementById("data-reset");
   const summary = document.getElementById("data-summary");
   const message = document.getElementById("data-message");
-  const table = document.querySelector(".data-table");
+  const table = document.querySelector(".data-explorer .data-table");
   const tableHead = document.getElementById("data-table-head");
   const tableBody = document.getElementById("data-table-body");
   const pagination = document.getElementById("data-pagination");
@@ -33,11 +34,49 @@
     return;
   }
 
-  if (!data || !Array.isArray(data.dataCenters) || !Array.isArray(data.metrics) || !Array.isArray(data.sources)) {
+  if (!exported || !Array.isArray(exported.dataCenters) || !Array.isArray(exported.metrics) || !Array.isArray(exported.sources)) {
     summary.textContent = "Данные пайплайна пока недоступны.";
     message.textContent = "Сначала выполните экспорт нормализованных данных командой export-site.";
     return;
   }
+
+  const extraSources = Object.entries(research?.sources || {}).map(([id, source]) => ({
+    id, name: source.short, type: "Публичный источник", document: source.title, url: source.url, notes: source.note
+  }));
+  const sourceById = new Map(extraSources.map((source) => [source.id, source]));
+  const enrichedDataCenters = exported.dataCenters.map((record) => {
+    const update = research?.catalogUpdates?.[record.id];
+    return update ? { ...record, ...update } : record;
+  });
+  const catalogById = new Map(enrichedDataCenters.map((record) => [record.id, record]));
+  const aliasesById = new Map();
+  const dataCenters = enrichedDataCenters.filter((record) => {
+    if (!record.duplicateOf || !catalogById.has(record.duplicateOf)) return true;
+    const aliases = aliasesById.get(record.duplicateOf) || [];
+    aliases.push(record);
+    aliasesById.set(record.duplicateOf, aliases);
+    return false;
+  });
+  const data = {
+    ...exported,
+    dataCenters,
+    metrics: exported.metrics.concat((research?.dataCenters || []).flatMap((site) =>
+      (site.reportedMetrics || []).map((metric) => {
+        const source = sourceById.get(metric.sourceId);
+        const catalog = catalogById.get(site.catalogId);
+        return {
+          ...metric, id: `${site.id}:${metric.name}:${metric.year || metric.sourceId}`, company: site.operator,
+          dataCenterId: site.catalogId, dataCenterName: site.name,
+          country: catalog?.country || site.country, countryLabel: catalog?.countryLabel || site.country,
+          scope: "facility", dataStatus: metric.dataStatus || "reported", sourceName: source?.name,
+          sourceDocument: source?.document, sourceUrl: source?.url, notes: metric.note
+        };
+      })
+    )),
+    sources: exported.sources.concat(extraSources.filter((source) =>
+      !exported.sources.some((record) => record.url === source.url)
+    ))
+  };
 
   const PAGE_SIZE = 12;
   const state = {
@@ -63,12 +102,13 @@
       searchFields: ["company", "name", "country", "countryLabel", "region", "city", "address"],
       countryField: "country",
       statusField: "status",
-      searchPlaceholder: "Компания, страна или название",
+      searchPlaceholder: "Компания, дата-центр, страна или город",
       extraFilters: [
         ["source", "sourceName", "Источник"],
         ["region", "region", "Регион"]
       ],
       statusLabels: {
+        unknown: "Не указано",
         open: "Открытый",
         operational: "Работает",
         planned: "Планируется",
@@ -105,6 +145,8 @@
         ["source", "sourceName", "Источник"]
       ],
       statusLabels: {
+        reported: "Опубликовано оператором",
+        historical: "Исторические данные",
         extracted: "Извлечено",
         needs_review: "Нужна проверка"
       }
@@ -315,6 +357,7 @@
 
   function searchValuesFor(record, field) {
     const values = [record[field]];
+    (aliasesById.get(record.id) || []).forEach((alias) => values.push(alias[field]));
     if (field === "country") {
       values.push(record.countryLabel);
     }
@@ -386,7 +429,7 @@
         )
       );
       const matchesCountry = !state.country || record[configuration.countryField] === state.country;
-      const matchesStatus = !state.status || record[configuration.statusField] === state.status;
+      const matchesStatus = !state.status || statusFor(record, configuration) === state.status;
       const matchesExtra = configuration.extraFilters.every(([key, field]) => {
         const selected = state.extra[key];
         if (key === "region") {
@@ -416,6 +459,10 @@
     });
   }
 
+  function statusFor(record, configuration) {
+    return record[configuration.statusField] || "unknown";
+  }
+
   function updateFilters() {
     const configuration = configurations[state.kind];
     const records = currentRecords();
@@ -427,7 +474,7 @@
     });
     const countries = [...countryNames.keys()].sort((a, b) => countryNames.get(a).localeCompare(countryNames.get(b), "ru"));
     const statuses = configuration.statusField
-      ? [...new Set(records.map((record) => record[configuration.statusField]).filter(Boolean))].sort()
+      ? [...new Set(records.map((record) => statusFor(record, configuration)))].sort()
       : [];
 
     countryLabel.hidden = !configuration.countryField || countries.length < 2;
@@ -590,9 +637,21 @@
       appendDetailField(fields, "Статус", labelFor(record.status, configurations.dataCenters.statusLabels));
       appendDetailField(fields, "Дата получения", formatDate(record.retrievedAt));
       appendDetailField(fields, "Примечание", record.notes);
+      const aliases = aliasesById.get(record.id);
+      if (aliases?.length) {
+        appendDetailField(fields, "Другие записи в ATLAS", aliases.map((alias) => [alias.name, alias.address].filter(Boolean).join(" · ")).join(" / "));
+      }
       appendLink(detail, "Источник", record.sourceUrl);
+      const updateSource = sourceById.get(record.sourceId);
+      if (updateSource) appendLink(detail, "Источник уточнения города или статуса", updateSource.url);
+      if (catalogById.has(record.relatedTo)) {
+        const link = createElement("a", "Открыть подтверждённую карточку кампуса");
+        link.href = "#data";
+        link.dataset.catalogId = record.relatedTo;
+        detail.append(createElement("p", "Эта запись может относиться к тому же кампусу. Точный адрес требует сверки."), link);
+      }
     } else if (state.kind === "metrics") {
-      appendDetailField(fields, "Значение", formatValue(record, "value") + " " + valueOrFallback(record.unit));
+      appendDetailField(fields, "Значение", [formatValue(record, "value"), record.unit].filter(Boolean).join(" "));
       appendDetailField(fields, "Источник данных", record.sourceName);
       appendDetailField(fields, "Охват", labelFor(record.scope));
       appendDetailField(fields, "Тип значения", labelFor(record.valueType));
@@ -650,6 +709,17 @@
   }
 
   kindControl.addEventListener("change", changeKind);
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-catalog-id]");
+    const record = catalogById.get(link?.dataset.catalogId);
+    if (!record) return;
+    kindControl.value = "dataCenters";
+    changeKind();
+    state.search = searchControl.value = record.address || record.name;
+    state.selectedId = record.id;
+    render();
+    renderDetail(record);
+  });
   searchControl.addEventListener("input", () => {
     state.search = searchControl.value;
     state.page = 1;
@@ -696,7 +766,7 @@
   renderSummary();
   searchControl.placeholder = configurations[state.kind].searchPlaceholder;
   disclaimer.textContent = data.generatedAt
-    ? "Дата обновления выгрузки: " + formatDate(data.generatedAt) + ". Метрики с пометкой «Нужна проверка» нельзя считать подтверждёнными характеристиками конкретного дата-центра."
+    ? "Дата основной выгрузки: " + formatDate(data.generatedAt) + ". Для проверенных вручную дополнений источник указан в карточке. Метрики с пометкой «Нужна проверка» требуют сверки."
     : "Метрики с пометкой «Нужна проверка» нельзя считать подтверждёнными характеристиками конкретного дата-центра.";
   updateFilters();
   render();

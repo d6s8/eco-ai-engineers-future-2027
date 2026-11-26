@@ -1529,6 +1529,10 @@ a {
   align-items: end;
 }
 
+.data-filter-row [hidden] {
+  display: none;
+}
+
 
 .data-search-control input,
 .data-filter-row select,
@@ -1992,6 +1996,99 @@ body {
 
 /* Research */
 
+.audience-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 24px;
+}
+
+.audience-links a,
+.method-table a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.method-table-wrap {
+  overflow-x: auto;
+  margin-top: 30px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.method-table.data-table {
+  min-width: 760px;
+  table-layout: auto;
+}
+
+.method-table.data-table tbody th {
+  width: 35%;
+  color: var(--text);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.method-table.data-table tbody tr {
+  cursor: auto;
+}
+
+.method-audience {
+  display: none;
+}
+
+@media (max-width: 840px) {
+  .method-table-wrap {
+    overflow: visible;
+    border: 0;
+  }
+
+  .method-table.data-table {
+    display: block;
+    min-width: 0;
+  }
+
+  .method-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .method-table tbody {
+    display: grid;
+    gap: 14px;
+  }
+
+  .method-table.data-table tbody tr {
+    display: grid;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+
+  .method-table.data-table tbody th,
+  .method-table.data-table tbody td {
+    display: block;
+    position: static;
+    width: auto;
+    padding: 12px 15px;
+  }
+
+  .method-table.data-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .method-audience {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+}
+
 .research-grid {
   display: grid;
 
@@ -2323,6 +2420,10 @@ body {
 
 @media (max-width: 600px) {
 
+  .hero h1 {
+    font-size: clamp(28px, 12vw, 56px);
+  }
+
   .section {
     width: 88%;
     padding: 84px 0;
@@ -2459,6 +2560,43 @@ body {
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+}
+
+.geo-metrics-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.geo-scenario {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.geo-scenario summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.geo-scenario-table {
+  overflow-x: auto;
+}
+
+.geo-scenario table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.geo-scenario th,
+.geo-scenario td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
 }
 
 .section-lead {

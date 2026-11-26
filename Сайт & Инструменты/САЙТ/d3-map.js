@@ -167,35 +167,6 @@
     });
   }
 
-  function getMethodology(nodeDatum) {
-    const research = window.researchData;
-
-    if (!research) {
-      return null;
-    }
-
-    const key = nodeDatum
-      .ancestors()
-      .map((item) => item.data.id)
-      .find((id) => research.nodeMethodology[id]);
-
-    return key ? research.methodology[research.nodeMethodology[key]] : null;
-  }
-
-  function renderSourceLinks(sourceIds) {
-    const sources = window.researchData?.sources || {};
-
-    return sourceIds.map((id) => {
-      const source = sources[id];
-
-      return (
-        '<li><a href="' + source.url + '" target="_blank" rel="noreferrer">' +
-          source.short +
-        ' ↗</a></li>'
-      );
-    }).join("");
-  }
-
   function updateInfo(nodeDatum) {
     const node = nodeDatum.data;
     const category = node.type === "root"
@@ -206,23 +177,11 @@
           ? "ПОДТЕМА"
           : "ФАКТОР";
 
-    const methodology = getMethodology(nodeDatum);
-    const methodologyMarkup = methodology
-      ? '<section class="info-methodology">' +
-          '<p class="info-method-label">КАК ИЗМЕРЯЕМ</p>' +
-          '<p class="info-definition">' + methodology.definition + '</p>' +
-          '<p class="info-metric"><span>Показатель</span>' + methodology.metric + '</p>' +
-          '<div class="info-formula">' + methodology.formula + '</div>' +
-          '<p class="info-limit"><strong>Граница модели:</strong> ' + methodology.limitations + '</p>' +
-          '<ul class="info-sources">' + renderSourceLinks(methodology.sources) + '</ul>' +
-        '</section>'
-      : '';
-
     d3InfoPanel.innerHTML =
       '<div class="info-category">' + category + '</div>' +
       '<h3 class="info-title">' + node.title + '</h3>' +
       '<p class="info-text">' + node.description + '</p>' +
-      methodologyMarkup +
+      '<p><a href="#methodology">Показатели и формулы</a></p>' +
       '<button class="info-close" type="button">Сбросить выбор</button>';
 
     d3InfoPanel.querySelector(".info-close").addEventListener("click", () => {

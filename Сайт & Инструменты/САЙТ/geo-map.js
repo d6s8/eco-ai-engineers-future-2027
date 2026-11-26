@@ -8,6 +8,8 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   const summary = document.getElementById("geo-map-summary");
   const countryFilter = document.getElementById("geo-map-country-filter");
   const filterReset = document.getElementById("geo-map-filter-reset");
+  const siteFilter = document.getElementById("geo-map-sites");
+  const metricsOnly = document.getElementById("geo-map-metrics-only");
 
   if (!mapElement || !panel || !maplibregl?.Map) {
     if (panel) panel.innerHTML = "<p>Не удалось загрузить карту. Проверь подключение к картографическому слою.</p>";
@@ -39,7 +41,10 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
   const researchByKey = new Map();
   const researchById = new Map();
+  const researchByAtlasKey = new Map();
   const catalogByKey = new Map();
+  const catalogByAtlasKey = new Map();
+  const catalogById = new Map();
   const metricsByDataCenterId = new Map();
   let selectedId = null;
   let allFeatures = [];
@@ -54,14 +59,24 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     .replaceAll("'", "&#039;");
   const normalizeKeyPart = (value) => String(value ?? "").trim().toLocaleLowerCase("ru-RU").replace(/\s+/g, " ");
   const recordKey = (record) => [record.name, record.company, record.country].map(normalizeKeyPart).join("|");
+  const atlasKey = (record) => [recordKey(record), normalizeKeyPart(record.address)].join("|");
+  const atlasCatalogIds = new Map((researchData?.dataCenters || [])
+    .filter((site) => site.atlasCatalogId || site.catalogId)
+    .map((site) => [site.atlasCatalogId || site.catalogId, site]));
 
   (researchData?.dataCenters || []).forEach((site) => {
     researchById.set(site.id, site);
     researchByKey.set([site.name, site.operator, site.country].map(normalizeKeyPart).join("|"), site);
   });
-  (projectData?.dataCenters || []).forEach((site) => catalogByKey.set(recordKey({
-    name: site.name, company: site.company, country: site.country
-  }), site));
+  (projectData?.dataCenters || []).forEach((site) => {
+    const update = researchData?.catalogUpdates?.[site.id];
+    const record = update ? { ...site, ...update } : site;
+    catalogById.set(site.id, record);
+    const key = recordKey(site);
+    catalogByKey.set(key, catalogByKey.has(key) ? null : record);
+    catalogByAtlasKey.set(atlasKey(site), record);
+    if (atlasCatalogIds.has(site.id)) researchByAtlasKey.set(atlasKey(site), atlasCatalogIds.get(site.id));
+  });
   (projectData?.metrics || []).forEach((metric) => {
     if (!metric.dataCenterId) return;
     const metrics = metricsByDataCenterId.get(metric.dataCenterId) || [];
@@ -72,8 +87,8 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   function getContext(feature) {
     const properties = feature.properties || {};
     const key = recordKey(properties);
-    const research = researchById.get(properties.researchId) || researchByKey.get(key) || null;
-    const catalog = catalogByKey.get(key) || null;
+    const research = researchById.get(properties.researchId) || researchByAtlasKey.get(atlasKey(properties)) || researchByKey.get(key) || null;
+    const catalog = catalogById.get(research?.catalogId) || catalogByAtlasKey.get(atlasKey(properties)) || catalogByKey.get(key) || null;
     return { properties, research, catalog, metrics: catalog ? (metricsByDataCenterId.get(catalog.id) || []) : [] };
   }
 
@@ -88,6 +103,13 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       note: context.research.id === "ix-mos1"
         ? "проектное значение из описания оператора; не фактическое измерение"
         : context.research.pueLabel
+    });
+    (context.research?.reportedMetrics || []).forEach((metric) => {
+      metrics.push({
+        label: metric.name,
+        value: [numberFormat.format(metric.value), metric.unit].filter(Boolean).join(" "),
+        note: [metric.year ? `отчёт оператора за ${metric.year} год` : "", metric.note].filter(Boolean).join(". ")
+      });
     });
     context.metrics
       .filter((metric) => metric.value != null && metric.dataStatus !== "needs_review" && !metrics.some((item) => item.label === metric.name))
@@ -125,13 +147,12 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
   function renderSummary(features) {
     if (!summary) return;
-    const atlasSites = features.filter((feature) => feature.properties?.sourceType !== "research").length;
-    const researchSites = features.filter((feature) => feature.properties?.sourceType === "research").length;
+    const researchSites = new Set(features.map((feature) => getContext(feature).research?.id).filter(Boolean)).size;
     const metricSites = features.filter((feature) => getMetrics(getContext(feature)).length > 0).length;
     const catalogTotal = projectData?.dataCenters?.length || 0;
     summary.innerHTML = `
-      <div class="geo-map-stat"><span>Записей в каталоге</span><strong>${catalogTotal.toLocaleString("ru-RU")}</strong></div>
-      <div class="geo-map-stat"><span>Точек на карте</span><strong>${atlasSites.toLocaleString("ru-RU")}</strong></div>
+      <div class="geo-map-stat"><span>Записей в выгрузке ATLAS</span><strong>${catalogTotal.toLocaleString("ru-RU")}</strong></div>
+      <div class="geo-map-stat"><span>Точек на карте</span><strong>${features.length.toLocaleString("ru-RU")}</strong></div>
       <div class="geo-map-stat"><span>Площадки исследования</span><strong>${researchSites.toLocaleString("ru-RU")}</strong></div>
       <div class="geo-map-stat"><span>С доступными сведениями</span><strong>${metricSites.toLocaleString("ru-RU")}</strong></div>`;
   }
@@ -143,28 +164,65 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       .map((site) => ({
         type: "Feature",
         geometry: { type: "Point", coordinates: [site.coordinates[1], site.coordinates[0]] },
-        properties: { name: site.name, company: site.operator, country: site.country, city: site.place, address: site.place, researchId: site.id, sourceType: "research" }
+        properties: { name: site.name, company: site.operator, country: catalogById.get(site.catalogId)?.country || site.country, city: site.city || site.place, researchId: site.id, sourceType: "research" }
       }));
+  }
+
+  function renderScenario(site) {
+    if (!site?.scenario) return "";
+    const { hours, pue, wue, gridFactor, powerShares } = site.scenario;
+    const rows = powerShares.map((share) => {
+      const facilityMwh = site.capacityMw * share * hours;
+      const itMwh = facilityMwh / pue;
+      return `<tr><th scope="row">${numberFormat.format(share * 100)}%</th>
+        <td>${numberFormat.format(facilityMwh / 1000)}</td>
+        <td>${numberFormat.format(itMwh / 1000)}</td>
+        <td>${numberFormat.format(itMwh * wue)}</td>
+        <td>${numberFormat.format(facilityMwh * gridFactor)}</td></tr>`;
+    }).join("");
+    return `<details class="geo-scenario"><summary>Учебный сценарий для MOS1</summary>
+      <p>Мощность площадки по данным оператора — ${numberFormat.format(site.capacityMw)} МВт. Для примера берём среднюю мощность в 25%, 50% и 75% от неё на протяжении ${numberFormat.format(hours)} часов. Допущения: PUE ${numberFormat.format(pue)}, WUE ${numberFormat.format(wue)} л/кВт·ч IT, вся электроэнергия из сети с условным коэффициентом ${numberFormat.format(gridFactor)} кг CO₂e/кВт·ч.</p>
+      <div class="geo-scenario-table" role="region" aria-label="Результаты учебного сценария" tabindex="0"><table>
+        <thead><tr><th scope="col">Доля мощности</th><th scope="col">ЦОД, ГВт·ч</th><th scope="col">IT, ГВт·ч</th><th scope="col">Вода, м³</th><th scope="col">Выбросы, т CO₂e</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div><p>Это сценарии средней электрической мощности всей площадки. Для нижней границы вычислительной загрузки нужны телеметрия или проверенная модель серверов и измерения за тот же период. <a href="#methodology">Формулы</a></p>
+      </details>`;
   }
 
   function renderPanel(feature) {
     const context = getContext(feature);
+    if (siteFilter) siteFilter.value = context.research?.id || "";
     const properties = context.properties;
     const metrics = getMetrics(context);
     const catalog = context.catalog;
-    const place = [properties.city || catalog?.city, properties.state || catalog?.region, properties.country || catalog?.countryLabel || catalog?.country].filter(Boolean).join(", ");
+    const place = [context.research?.city || properties.city || catalog?.city, properties.state || catalog?.region, catalog?.countryLabel || properties.country].filter(Boolean).join(", ");
+    const energyContext = (context.research?.energyContext || []).map(({ label, text, sourceIds }) => {
+      const links = sourceIds.map((id) => {
+        const source = researchData.sources[id];
+        return `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.short)}</a>`;
+      }).join(" · ");
+      return `<p class="geo-panel-copy"><strong>${escapeHtml(label)}.</strong> ${escapeHtml(text)} ${links}</p>`;
+    }).join("");
+    const catalogLink = catalogById.has(context.research?.catalogId)
+      ? `<p class="geo-panel-copy"><a href="#data" data-catalog-id="${escapeHtml(context.research.catalogId)}">Открыть запись в каталоге</a></p>`
+      : catalogById.has(catalog?.relatedTo)
+        ? `<p class="geo-panel-copy">Возможная связанная запись. <a href="#data" data-catalog-id="${escapeHtml(catalog.relatedTo)}">Открыть подтверждённую карточку кампуса</a></p>`
+        : "";
     const metricMarkup = metrics.length
       ? `<dl class="geo-details">${metrics.map((metric) => `<div><dt>${escapeHtml(metric.label)}</dt><dd>${escapeHtml(metric.value)}${metric.note ? ` — ${escapeHtml(metric.note)}` : ""}</dd></div>`).join("")}</dl>`
       : "<p class=\"geo-panel-copy\">Для этой площадки в подключённых наборах нет подтверждённых экологических метрик.</p>";
     panel.innerHTML =
       `<p class="geo-panel-kicker">${metrics.length ? "Есть доступные сведения" : "Только географическая запись"}</p>` +
-      `<h3>${escapeHtml(properties.name || "Дата-центр без названия")}</h3>` +
+      `<h3>${escapeHtml(context.research?.name || properties.name || "Дата-центр без названия")}</h3>` +
       `<p class="geo-panel-place">${escapeHtml(properties.company || catalog?.company || "Оператор не указан")}${place ? ` · ${escapeHtml(place)}` : ""}</p>` + metricMarkup +
-      `<dl class="geo-details geo-location-details"><div><dt>Адрес</dt><dd>${escapeHtml(properties.address || catalog?.address || "не опубликован")}</dd></div>` +
+      (context.research?.cooling ? `<p class="geo-panel-copy"><strong>Охлаждение и тепло.</strong> ${escapeHtml(context.research.cooling)}</p>` : "") +
+      energyContext + renderScenario(context.research) +
+      `<dl class="geo-details geo-location-details"><div><dt>Адрес</dt><dd>${escapeHtml((context.research && catalog?.address) || properties.address || catalog?.address || "не опубликован")}</dd></div>` +
       (catalog?.region ? `<div><dt>Регион</dt><dd>${escapeHtml(catalog.region)}</dd></div>` : "") +
-      (catalog?.status ? `<div><dt>Статус</dt><dd>${escapeHtml(catalog.status)}</dd></div>` : "") +
-      `<div><dt>Координаты</dt><dd>${escapeHtml(feature.geometry.coordinates[1].toFixed(4))}, ${escapeHtml(feature.geometry.coordinates[0].toFixed(4))}</dd></div></dl>` +
-      `<h4>Источники</h4><ul class="source-list">${formatSources(context)}</ul>`;
+      (catalog?.status ? `<div><dt>Статус</dt><dd>${escapeHtml(catalog.status === "operational" ? "Работает" : catalog.status)}</dd></div>` : "") +
+      `<div><dt>Координаты</dt><dd>${escapeHtml(feature.geometry.coordinates[1].toFixed(4))}, ${escapeHtml(feature.geometry.coordinates[0].toFixed(4))}</dd></div>` +
+      (context.research?.precision ? `<div><dt>Точность точки</dt><dd>${escapeHtml(context.research.precision)}</dd></div>` : "") + "</dl>" +
+      catalogLink + `<h4>Источники</h4><ul class="source-list">${formatSources(context)}</ul>`;
   }
 
   function mapFeature(feature, index, selected = false) {
@@ -226,12 +284,15 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     renderSummary(features);
     if (!features.length) {
       selectedId = null;
-      panel.innerHTML = '<p class="geo-panel-copy">Для выбранной страны в наборе нет точек с координатами.</p>';
+      if (siteFilter) siteFilter.value = "";
+      panel.innerHTML = '<p class="geo-panel-copy">По выбранным фильтрам точек нет.</p>';
       syncMapData();
       return;
     }
-    selectedId = featureId(features[0], 0);
-    renderPanel(features[0]);
+    const firstWithMetrics = features.findIndex((feature) => getMetrics(getContext(feature)).length > 0);
+    const firstIndex = Math.max(0, firstWithMetrics);
+    selectedId = featureId(features[firstIndex], firstIndex);
+    renderPanel(features[firstIndex]);
     syncMapData();
     if (map.isStyleLoaded()) {
       const bounds = new maplibregl.LngLatBounds();
@@ -249,16 +310,54 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     countryFilter.innerHTML = '<option value="">Все страны</option>' + countries.map((country) => `<option value="${escapeHtml(country)}">${escapeHtml(countryLabels.get(country) || country)}</option>`).join("");
   }
 
-  function applyCountryFilter() {
+  function applyFilters() {
     const country = countryFilter?.value || "";
-    renderFeatures(country ? allFeatures.filter((feature) => feature.properties?.country === country) : allFeatures);
+    const filtered = allFeatures.filter((feature) =>
+      (!country || feature.properties?.country === country) &&
+      (!metricsOnly?.checked || getMetrics(getContext(feature)).length > 0)
+    );
+    renderFeatures(filtered);
   }
-  countryFilter?.addEventListener("change", applyCountryFilter);
-  filterReset?.addEventListener("click", () => { if (countryFilter) countryFilter.value = ""; applyCountryFilter(); });
+  countryFilter?.addEventListener("change", applyFilters);
+  metricsOnly?.addEventListener("change", applyFilters);
+  filterReset?.addEventListener("click", () => {
+    if (countryFilter) countryFilter.value = "";
+    if (metricsOnly) metricsOnly.checked = false;
+    applyFilters();
+  });
+
+  let requestedResearchId = null;
+  function showRequestedSite() {
+    if (!requestedResearchId || !map.getSource("datacenters")) return;
+    const index = allFeatures.findIndex((feature) => getContext(feature).research?.id === requestedResearchId);
+    if (index < 0) return;
+    requestedResearchId = null;
+    const feature = allFeatures[index];
+    if (countryFilter) countryFilter.value = "";
+    if (metricsOnly) metricsOnly.checked = false;
+    visibleFeatures = allFeatures;
+    renderSummary(allFeatures);
+    selectedId = featureId(feature, index);
+    renderPanel(feature);
+    syncMapData();
+    map.flyTo({ center: feature.geometry.coordinates, zoom: 9 });
+  }
+
+  document.querySelectorAll("[data-map-site]").forEach((link) => {
+    link.addEventListener("click", () => {
+      requestedResearchId = link.dataset.mapSite;
+      showRequestedSite();
+    });
+  });
+  siteFilter?.addEventListener("change", () => {
+    requestedResearchId = siteFilter.value;
+    showRequestedSite();
+  });
 
   map.on("load", () => {
     addPointLayers();
     if (visibleFeatures.length) renderFeatures(visibleFeatures);
+    showRequestedSite();
   });
   map.on("error", (event) => {
     if (event?.error) console.warn("MapLibre map error:", event.error.message || event.error);
@@ -276,7 +375,16 @@ import * as maplibregl from "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       const atlasFeatures = (geoJson.features || []).filter((feature) => feature.geometry?.type === "Point" && Array.isArray(feature.geometry.coordinates));
       allFeatures = atlasFeatures.concat(createResearchFeatures(atlasFeatures));
       populateCountryFilter(allFeatures);
+      if (siteFilter) {
+        const sites = [...new Set(allFeatures.map((feature) => getContext(feature).research).filter(Boolean))];
+        sites.sort((a, b) => a.name.localeCompare(b.name, "ru"));
+        siteFilter.insertAdjacentHTML("beforeend", sites.map((site) =>
+          `<option value="${escapeHtml(site.id)}">${escapeHtml(site.name)} · ${escapeHtml(site.place)}</option>`
+        ).join(""));
+        siteFilter.disabled = sites.length === 0;
+      }
       renderFeatures(allFeatures);
+      showRequestedSite();
     } catch (error) {
       if (window.location.protocol === "file:") {
         const researchFeatures = createResearchFeatures([]);

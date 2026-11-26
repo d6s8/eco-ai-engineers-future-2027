@@ -18,6 +18,7 @@ env/
 *.code-workspace
 .DS_Store
 Thumbs.db
+.~lock.*#
 
 # Local exports and caches
 *.bak
